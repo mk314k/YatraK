@@ -1,4 +1,4 @@
-import { NepalCity } from './types';
+import { NepalCity, NepalRoute } from './types';
 
 export const MAP_WIDTH = 1280;
 export const MAP_HEIGHT = 720;
@@ -239,3 +239,70 @@ export const NEPAL_CITIES: NepalCity[] = [
 export const CITY_BY_ID: Map<string, NepalCity> = new Map(
   NEPAL_CITIES.map((c) => [c.id, c])
 );
+
+export const NEPAL_ROUTES: NepalRoute[] = [
+  // Far-West & Mid-West links
+  { id: 0, from: 'mahendranagar', to: 'dadeldhura', length: 2, color: 'green' },
+  { id: 1, from: 'mahendranagar', to: 'dhangadhi', length: 1, color: 'yellow' },
+  { id: 2, from: 'dadeldhura', to: 'dipayal', length: 2, color: 'orange' },
+  { id: 3, from: 'dadeldhura', to: 'dhangadhi', length: 2, color: 'gray' },
+  { id: 4, from: 'dipayal', to: 'simikot', length: 3, color: 'white', isMountainPass: true },
+  { id: 5, from: 'dipayal', to: 'jumla', length: 3, color: 'purple', isMountainPass: true },
+  { id: 6, from: 'dipayal', to: 'surkhet', length: 2, color: 'blue' },
+  { id: 7, from: 'dhangadhi', to: 'surkhet', length: 3, color: 'red' },
+  { id: 8, from: 'dhangadhi', to: 'nepalgunj', length: 3, color: 'green', doubleIndex: 0 },
+  { id: 9, from: 'dhangadhi', to: 'nepalgunj', length: 3, color: 'yellow', doubleIndex: 1 },
+  { id: 10, from: 'simikot', to: 'jumla', length: 2, color: 'black', isMountainPass: true },
+  { id: 11, from: 'jumla', to: 'surkhet', length: 3, color: 'orange', isMountainPass: true },
+  { id: 12, from: 'jumla', to: 'dolpa', length: 3, color: 'gray', isMountainPass: true },
+  { id: 13, from: 'surkhet', to: 'nepalgunj', length: 2, color: 'blue', doubleIndex: 0 },
+  { id: 14, from: 'surkhet', to: 'nepalgunj', length: 2, color: 'white', doubleIndex: 1 },
+  { id: 15, from: 'surkhet', to: 'tulsipur', length: 2, color: 'purple' },
+  { id: 16, from: 'nepalgunj', to: 'tulsipur', length: 2, color: 'red' },
+  { id: 17, from: 'nepalgunj', to: 'butwal', length: 5, color: 'orange' },
+
+  // Western / Gandaki links
+  { id: 18, from: 'dolpa', to: 'jomsom', length: 3, color: 'white', isMountainPass: true },
+  { id: 19, from: 'dolpa', to: 'baglung', length: 3, color: 'black', isMountainPass: true },
+  { id: 20, from: 'tulsipur', to: 'baglung', length: 3, color: 'green' },
+  { id: 21, from: 'tulsipur', to: 'butwal', length: 3, color: 'yellow' },
+  { id: 22, from: 'jomsom', to: 'baglung', length: 2, color: 'red', isMountainPass: true },
+  { id: 23, from: 'jomsom', to: 'pokhara', length: 3, color: 'blue', isMountainPass: true },
+  { id: 24, from: 'baglung', to: 'pokhara', length: 2, color: 'gray', doubleIndex: 0 },
+  { id: 25, from: 'baglung', to: 'pokhara', length: 2, color: 'purple', doubleIndex: 1 },
+  { id: 26, from: 'baglung', to: 'butwal', length: 3, color: 'white' },
+  { id: 27, from: 'pokhara', to: 'butwal', length: 3, color: 'green', doubleIndex: 0 },
+  { id: 28, from: 'pokhara', to: 'butwal', length: 3, color: 'black', doubleIndex: 1 },
+  { id: 29, from: 'pokhara', to: 'gorkha', length: 2, color: 'yellow' },
+  { id: 30, from: 'pokhara', to: 'bharatpur', length: 2, color: 'orange', doubleIndex: 0 },
+  { id: 31, from: 'pokhara', to: 'bharatpur', length: 2, color: 'blue', doubleIndex: 1 },
+  { id: 32, from: 'butwal', to: 'bharatpur', length: 3, color: 'red', doubleIndex: 0 },
+  { id: 33, from: 'butwal', to: 'bharatpur', length: 3, color: 'gray', doubleIndex: 1 },
+
+  // Central / Bagmati links
+  { id: 34, from: 'jomsom', to: 'langtang', length: 5, color: 'purple', isMountainPass: true },
+  { id: 35, from: 'gorkha', to: 'langtang', length: 2, color: 'white', isMountainPass: true },
+  { id: 36, from: 'gorkha', to: 'kathmandu', length: 2, color: 'green' },
+  { id: 37, from: 'gorkha', to: 'bharatpur', length: 2, color: 'black' },
+  { id: 38, from: 'bharatpur', to: 'kathmandu', length: 3, color: 'red', doubleIndex: 0 },
+  { id: 39, from: 'bharatpur', to: 'kathmandu', length: 3, color: 'yellow', doubleIndex: 1 },
+  { id: 40, from: 'bharatpur', to: 'birgunj', length: 2, color: 'blue' },
+  { id: 41, from: 'langtang', to: 'kathmandu', length: 2, color: 'orange', isMountainPass: true },
+  { id: 42, from: 'langtang', to: 'lukla', length: 4, color: 'gray', isMountainPass: true },
+  { id: 43, from: 'kathmandu', to: 'birgunj', length: 3, color: 'purple' },
+  { id: 44, from: 'kathmandu', to: 'sindhuli', length: 2, color: 'black', doubleIndex: 0 },
+  { id: 45, from: 'kathmandu', to: 'sindhuli', length: 2, color: 'white', doubleIndex: 1 },
+  { id: 46, from: 'kathmandu', to: 'lukla', length: 3, color: 'blue', isMountainPass: true },
+
+  // Eastern / Janakpur & Koshi links
+  { id: 47, from: 'birgunj', to: 'janakpur', length: 3, color: 'green' },
+  { id: 48, from: 'sindhuli', to: 'janakpur', length: 2, color: 'yellow' },
+  { id: 49, from: 'sindhuli', to: 'lukla', length: 3, color: 'orange', isMountainPass: true },
+  { id: 50, from: 'sindhuli', to: 'dharan', length: 4, color: 'red' },
+  { id: 51, from: 'janakpur', to: 'dharan', length: 3, color: 'white', doubleIndex: 0 },
+  { id: 52, from: 'janakpur', to: 'dharan', length: 3, color: 'black', doubleIndex: 1 },
+  { id: 53, from: 'lukla', to: 'dharan', length: 4, color: 'purple', isMountainPass: true },
+  { id: 54, from: 'lukla', to: 'taplejung', length: 4, color: 'green', isMountainPass: true },
+  { id: 55, from: 'dharan', to: 'taplejung', length: 3, color: 'blue' },
+];
+
