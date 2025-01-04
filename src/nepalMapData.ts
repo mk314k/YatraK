@@ -1,4 +1,4 @@
-import { NepalCity, NepalRoute } from './types';
+import { NepalCity, NepalRoute, DestinationTicket } from './types';
 
 export const MAP_WIDTH = 1280;
 export const MAP_HEIGHT = 720;
@@ -305,4 +305,26 @@ export const NEPAL_ROUTES: NepalRoute[] = [
   { id: 54, from: 'lukla', to: 'taplejung', length: 4, color: 'green', isMountainPass: true },
   { id: 55, from: 'dharan', to: 'taplejung', length: 3, color: 'blue' },
 ];
+
+export const NEPAL_TICKETS: DestinationTicket[] = [
+  { id: 0, from: 'mahendranagar', to: 'dharan', points: 21, corridorName: 'Mahendra East-West Highway' },
+  { id: 1, from: 'simikot', to: 'taplejung', points: 22, corridorName: 'Great Himalayan Trail' },
+  { id: 2, from: 'dhangadhi', to: 'kathmandu', points: 14, corridorName: 'Far-West Capital Express' },
+  { id: 3, from: 'kathmandu', to: 'lukla', points: 7, corridorName: 'Everest Gateway Route' },
+  { id: 4, from: 'pokhara', to: 'jomsom', points: 6, corridorName: 'Annapurna & Kali Gandaki Trail' },
+  { id: 5, from: 'nepalgunj', to: 'jumla', points: 8, corridorName: 'Karnali River Corridor' },
+  { id: 6, from: 'pokhara', to: 'kathmandu', points: 6, corridorName: 'Prithvi Highway' },
+  { id: 7, from: 'kathmandu', to: 'dharan', points: 10, corridorName: 'BP Koirala Highway' },
+  { id: 8, from: 'butwal', to: 'janakpur', points: 9, corridorName: 'Lumbini to Mithila Heritage' },
+  { id: 9, from: 'surkhet', to: 'pokhara', points: 10, corridorName: 'Mid-Hill Pushpalal Highway' },
+  { id: 10, from: 'birgunj', to: 'langtang', points: 8, corridorName: 'Trans-Himalayan Trade Route' },
+  { id: 11, from: 'dadeldhura', to: 'butwal', points: 11, corridorName: 'Western Terai-Hill Link' },
+  { id: 12, from: 'bharatpur', to: 'taplejung', points: 15, corridorName: 'Chitwan to Kanchenjunga' },
+  { id: 13, from: 'nepalgunj', to: 'birgunj', points: 11, corridorName: 'Southern Terai Trunk' },
+  { id: 14, from: 'jumla', to: 'kathmandu', points: 15, corridorName: 'Sinja Valley to Kathmandu' },
+  { id: 15, from: 'baglung', to: 'janakpur', points: 12, corridorName: 'Dhaulagiri to Janakpur' },
+  { id: 16, from: 'simikot', to: 'butwal', points: 14, corridorName: 'Humla to Lumbini Pilgrimage' },
+  { id: 17, from: 'gorkha', to: 'lukla', points: 11, corridorName: 'Shah Dynasty to Khumbu' },
+];
+
 
