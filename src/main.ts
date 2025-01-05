@@ -1,15 +1,19 @@
 import './style.css';
-import { StateVar } from 'statebinderk';
+import { renderNepalMapSvg } from './boardView';
 
 const appRoot = document.getElementById('app');
 if (appRoot) {
-  appRoot.innerHTML = `<header id="app-title">Ticket to Ride: Nepal</header>`;
-  const titleBinder = new StateVar<string>(
-    'Ticket to Ride: Nepal — Himalayan Edition',
-    'app-title',
-    (el, text) => {
-      el.textContent = text;
-    }
-  );
-  titleBinder.transition('Ticket to Ride: Nepal — Himalayan Edition');
+  appRoot.innerHTML = `
+    <div class="game-shell">
+      <header class="top-bar">
+        <div class="brand-group">
+          <h1 id="app-title">Ticket to Ride: Nepal</h1>
+          <span class="subtitle-pill">Himalayan Railway &amp; Highway Edition</span>
+        </div>
+      </header>
+      <main class="board-stage">
+        ${renderNepalMapSvg()}
+      </main>
+    </div>
+  `;
 }
