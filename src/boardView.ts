@@ -1,5 +1,5 @@
-import { NEPAL_CITIES, MAP_WIDTH, MAP_HEIGHT } from './nepalMapData';
-import { NepalRegion } from './types';
+import { NEPAL_CITIES, NEPAL_ROUTES, CITY_BY_ID, MAP_WIDTH, MAP_HEIGHT } from './nepalMapData';
+import { NepalRegion, NepalRoute, ROUTE_COLOR_HEX } from './types';
 
 const REGION_BADGE_COLOR: Record<NepalRegion, string> = {
   himalaya: '#3b6e8c',
@@ -7,7 +7,90 @@ const REGION_BADGE_COLOR: Record<NepalRegion, string> = {
   terai: '#4d7c3f',
 };
 
+function renderRouteSegmentsMarkup(route: NepalRoute): string {
+  const fromCity = CITY_BY_ID.get(route.from);
+  const toCity = CITY_BY_ID.get(route.to);
+  if (!fromCity || !toCity) return '';
+
+  const dx = toCity.x - fromCity.x;
+  const dy = toCity.y - fromCity.y;
+  const dist = Math.hypot(dx, dy) || 1;
+  const ux = dx / dist;
+  const uy = dy / dist;
+  const nx = -uy;
+  const ny = ux;
+
+  const offsetMag = route.doubleIndex === 0 ? -6.5 : route.doubleIndex === 1 ? 6.5 : 0;
+  const ox = nx * offsetMag;
+  const oy = ny * offsetMag;
+
+  const padEnd = 15;
+  const usableDist = Math.max(24, dist - padEnd * 2);
+  const segStep = usableDist / route.length;
+  const segW = Math.max(12, Math.min(34, segStep - 4));
+  const segH = 8.5;
+  const angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+  const baseFill = ROUTE_COLOR_HEX[route.color];
+  const strokeColor = route.color === 'white' ? '#5c4b3b' : '#2b2118';
+
+  const blocks: string[] = [];
+  for (let i = 0; i < route.length; i++) {
+    const t = padEnd + (i + 0.5) * segStep;
+    const cx = fromCity.x + ux * t + ox;
+    const cy = fromCity.y + uy * t + oy;
+    blocks.push(`
+      <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)}) rotate(${angleDeg.toFixed(1)})">
+        <rect
+          class="route-segment-box"
+          x="${(-segW / 2).toFixed(1)}"
+          y="${(-segH / 2).toFixed(1)}"
+          width="${segW.toFixed(1)}"
+          height="${segH}"
+          rx="2.5"
+          fill="${baseFill}"
+          stroke="${strokeColor}"
+          stroke-width="1.4"
+          ${route.isMountainPass ? 'stroke-dasharray="3,2"' : ''}
+        />
+        ${
+          route.isMountainPass
+            ? `<polygon points="-3,2 0,-3 3,2" fill="#fbf8f3" opacity="0.85" />`
+            : ''
+        }
+      </g>
+    `);
+  }
+
+  const midX = (fromCity.x + toCity.x) / 2 + ox;
+  const midY = (fromCity.y + toCity.y) / 2 + oy;
+
+  return `
+    <g
+      id="route-${route.id}"
+      class="route-group"
+      data-route-id="${route.id}"
+      data-color="${route.color}"
+      data-mountain="${route.isMountainPass ? '1' : '0'}"
+    >
+      <line
+        class="route-bed"
+        x1="${(fromCity.x + ox).toFixed(1)}"
+        y1="${(fromCity.y + oy).toFixed(1)}"
+        x2="${(toCity.x + ox).toFixed(1)}"
+        y2="${(toCity.y + oy).toFixed(1)}"
+        stroke="rgba(43, 33, 24, 0.22)"
+        stroke-width="10"
+        stroke-linecap="round"
+      />
+      ${blocks.join('')}
+      <g id="route-owner-token-${route.id}" class="route-owner-overlay" transform="translate(${midX.toFixed(1)}, ${midY.toFixed(1)})"></g>
+    </g>
+  `;
+}
+
 export function renderNepalMapSvg(): string {
+  const routesMarkup = NEPAL_ROUTES.map(renderRouteSegmentsMarkup).join('');
+
   const citiesMarkup = NEPAL_CITIES.map((city) => {
     const r = city.isHub ? 9 : 6.5;
     const regionColor = REGION_BADGE_COLOR[city.region];
@@ -77,7 +160,9 @@ export function renderNepalMapSvg(): string {
       </text>
 
       <!-- Route Tracks Layer -->
-      <g id="routes-layer"></g>
+      <g id="routes-layer">
+        ${routesMarkup}
+      </g>
 
       <!-- Cities Layer -->
       <g id="cities-layer">
