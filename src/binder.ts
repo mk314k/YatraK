@@ -1,5 +1,6 @@
-import { StateVarList, StyleVarList } from 'statebinderk';
+import { MultiStateVar, StateVarList, StyleVarList } from 'statebinderk';
 import { NEPAL_ROUTES } from './nepalMapData';
+import { TurnPhase } from './types';
 
 export interface RouteOwnershipBinding {
   ownerId: number | null;
@@ -8,11 +9,22 @@ export interface RouteOwnershipBinding {
   highlighted?: boolean;
 }
 
+export interface TurnBannerBinding {
+  activePlayerId: number;
+  activePlayerName: string;
+  activePlayerColor: string;
+  phase: TurnPhase;
+  statusMessage: string;
+}
+
 export class BoardBinder {
   public readonly routeOwners: StateVarList<RouteOwnershipBinding>;
   public readonly routeGlowStyles: StyleVarList<string>;
+  public readonly playerScores: StateVarList<number>;
+  public readonly playerCarriages: StateVarList<number>;
+  public readonly turnBanner: MultiStateVar<TurnBannerBinding>;
 
-  public constructor() {
+  public constructor(playerCount = 4) {
     const initialOwners = NEPAL_ROUTES.map((r) => ({
       id: `route-${r.id}`,
       state: {
@@ -71,6 +83,56 @@ export class BoardBinder {
       initialGlows,
       'filter'
     );
+
+    const scoreInit = Array.from({ length: playerCount }, (_, idx) => ({
+      id: `player-score-${idx}`,
+      state: 0,
+    }));
+    this.playerScores = new StateVarList<number>(
+      scoreInit,
+      (el, score) => {
+        el.textContent = `${score} pts`;
+      }
+    );
+
+    const carriageInit = Array.from({ length: playerCount }, (_, idx) => ({
+      id: `player-carriages-${idx}`,
+      state: 40,
+    }));
+    this.playerCarriages = new StateVarList<number>(
+      carriageInit,
+      (el, count) => {
+        el.textContent = `🚌 ${count}`;
+      }
+    );
+
+    this.turnBanner = new MultiStateVar<TurnBannerBinding>({
+      activePlayerId: 0,
+      activePlayerName: 'Player 1',
+      activePlayerColor: '#b85d38',
+      phase: 'choose-action',
+      statusMessage: 'Draw 2 transport cards, claim a route, or draw destination tickets.',
+    });
+
+    this.turnBanner.addBinding('turn-player-badge', (el, st) => {
+      el.textContent = st.activePlayerName;
+      el.style.backgroundColor = st.activePlayerColor;
+    });
+
+    this.turnBanner.addBinding('turn-status-text', (el, st) => {
+      el.textContent = st.statusMessage;
+    });
+
+    this.turnBanner.addBinding('player-cards-row', (el, st) => {
+      const cards = el.querySelectorAll('.player-summary-card');
+      cards.forEach((card, idx) => {
+        if (idx === st.activePlayerId) {
+          card.classList.add('active-turn');
+        } else {
+          card.classList.remove('active-turn');
+        }
+      });
+    });
   }
 
   public claimRoute(routeId: number, ownerId: number, ownerColor: string, ownerName: string): void {
