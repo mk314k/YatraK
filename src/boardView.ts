@@ -1,5 +1,6 @@
 import { NEPAL_CITIES, NEPAL_ROUTES, CITY_BY_ID, MAP_WIDTH, MAP_HEIGHT } from './nepalMapData';
-import { NepalRegion, NepalRoute, ROUTE_COLOR_HEX } from './types';
+import { NepalRegion, NepalRoute, PlayerState, CARD_COLOR_HEX, ROUTE_COLOR_HEX } from './types';
+import { ALL_CARD_COLORS } from './binder';
 
 const REGION_BADGE_COLOR: Record<NepalRegion, string> = {
   himalaya: '#3b6e8c',
@@ -169,5 +170,115 @@ export function renderNepalMapSvg(): string {
         ${citiesMarkup}
       </g>
     </svg>
+  `;
+}
+
+export function renderGameWorkspaceMarkup(players: PlayerState[]): string {
+  const playerCardsHtml = players
+    .map(
+      (p, idx) => `
+      <div class="player-summary-card${idx === 0 ? ' active-turn' : ''}" data-player-idx="${idx}">
+        <div class="player-card-header">
+          <span class="player-dot" style="background:${p.colorHex}"></span>
+          <strong class="player-name">${p.name}</strong>
+          <span class="player-role-tag">${p.personality === 'human' ? 'You' : p.personality}</span>
+        </div>
+        <div class="player-card-stats">
+          <span id="player-score-${idx}" class="player-score-pill">${p.score} pts</span>
+          <span id="player-carriages-${idx}" class="player-carriage-pill">🚌 ${p.carriages}</span>
+        </div>
+      </div>
+    `
+    )
+    .join('');
+
+  const marketSlotsHtml = Array.from({ length: 5 }, (_, idx) => `
+    <button type="button" id="market-slot-${idx}" class="market-card-slot" data-slot="${idx}">
+      Card ${idx + 1}
+    </button>
+  `).join('');
+
+  const handChipsHtml = ALL_CARD_COLORS.map((color) => {
+    const bg =
+      color === 'locomotive'
+        ? 'linear-gradient(135deg, #c83e31 0%, #d99b26 35%, #3a7d44 70%, #2a6f97 100%)'
+        : CARD_COLOR_HEX[color];
+    const textCol = color === 'white' || color === 'yellow' ? '#2b2118' : '#fffdf9';
+    const label = color === 'locomotive' ? '★ Wild' : color;
+    return `
+      <div class="hand-card-chip" data-color="${color}">
+        <span class="hand-card-swatch" style="background:${bg};color:${textCol}">${label}</span>
+        <span id="hand-count-${color}" class="hand-card-count">0</span>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="game-shell">
+      <header class="top-bar">
+        <div class="brand-group">
+          <h1 id="app-title">Ticket to Ride: Nepal</h1>
+          <span class="subtitle-pill">Himalayan Railway &amp; Highway Edition</span>
+        </div>
+        <div class="turn-banner">
+          <span id="turn-player-badge" class="turn-player-badge">Player 1</span>
+          <span id="turn-status-text" class="turn-status-text">Draw 2 transport cards, claim a route, or draw destination tickets.</span>
+        </div>
+        <div class="top-actions">
+          <button type="button" id="btn-rules" class="top-btn">Rules &amp; Scoring</button>
+          <button type="button" id="btn-new-game" class="top-btn primary">New Game</button>
+        </div>
+      </header>
+
+      <div class="workspace-grid">
+        <aside class="left-panel">
+          <section class="panel-section">
+            <h2 class="section-heading">Expedition Teams</h2>
+            <div id="player-cards-row" class="player-cards-list">
+              ${playerCardsHtml}
+            </div>
+          </section>
+          <section class="panel-section tickets-section">
+            <div class="section-header-row">
+              <h2 class="section-heading">Your Destination Tickets</h2>
+              <button type="button" id="btn-draw-tickets" class="mini-btn">+ Draw Tickets</button>
+            </div>
+            <div id="player-tickets-list" class="tickets-list"></div>
+          </section>
+        </aside>
+
+        <main class="board-stage">
+          <div id="map-viewport" class="map-viewport">
+            ${renderNepalMapSvg()}
+            <div id="board-tooltip" class="board-tooltip hidden"></div>
+          </div>
+        </main>
+
+        <aside class="right-panel">
+          <section class="panel-section">
+            <h2 class="section-heading">Transport Market</h2>
+            <button type="button" id="btn-draw-blind" class="blind-deck-btn">
+              <span>Draw Blind Deck</span>
+              <small id="deck-remaining-count">110 cards</small>
+            </button>
+            <div class="market-slots-stack">
+              ${marketSlotsHtml}
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <footer class="bottom-hand-bar">
+        <div class="hand-bar-label">Your Transport Hand</div>
+        <div class="hand-chips-row">
+          ${handChipsHtml}
+        </div>
+        <div id="game-log-ticker" class="game-log-ticker">
+          Welcome to Nepal! Connect Terai highways, Pahad hills, and Himalayan mountain passes.
+        </div>
+      </footer>
+
+      <div id="modal-overlay" class="modal-overlay hidden"></div>
+    </div>
   `;
 }
