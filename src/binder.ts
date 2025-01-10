@@ -1,6 +1,18 @@
 import { MultiStateVar, StateVarList, StyleVarList } from 'statebinderk';
 import { NEPAL_ROUTES } from './nepalMapData';
-import { TurnPhase } from './types';
+import { CardColor, CARD_COLOR_HEX, TurnPhase } from './types';
+
+export const ALL_CARD_COLORS: CardColor[] = [
+  'red',
+  'blue',
+  'green',
+  'yellow',
+  'orange',
+  'purple',
+  'white',
+  'black',
+  'locomotive',
+];
 
 export interface RouteOwnershipBinding {
   ownerId: number | null;
@@ -22,6 +34,8 @@ export class BoardBinder {
   public readonly routeGlowStyles: StyleVarList<string>;
   public readonly playerScores: StateVarList<number>;
   public readonly playerCarriages: StateVarList<number>;
+  public readonly handCardCounts: StateVarList<number>;
+  public readonly marketSlots: StateVarList<CardColor | null>;
   public readonly turnBanner: MultiStateVar<TurnBannerBinding>;
 
   public constructor(playerCount = 4) {
@@ -106,6 +120,48 @@ export class BoardBinder {
       }
     );
 
+    const handInit = ALL_CARD_COLORS.map((color) => ({
+      id: `hand-count-${color}`,
+      state: 0,
+    }));
+    this.handCardCounts = new StateVarList<number>(
+      handInit,
+      (el, count) => {
+        el.textContent = String(count);
+        const chip = el.closest('.hand-card-chip');
+        if (chip) {
+          if (count > 0) {
+            chip.classList.remove('empty-card');
+          } else {
+            chip.classList.add('empty-card');
+          }
+        }
+      }
+    );
+
+    const marketInit = Array.from({ length: 5 }, (_, slotIdx) => ({
+      id: `market-slot-${slotIdx}`,
+      state: null as CardColor | null,
+    }));
+    this.marketSlots = new StateVarList<CardColor | null>(
+      marketInit,
+      (el, cardColor) => {
+        if (!cardColor) {
+          el.textContent = 'Empty';
+          el.style.background = '#e5dac7';
+          el.style.color = '#756759';
+          return;
+        }
+        const hex = CARD_COLOR_HEX[cardColor];
+        el.style.background =
+          cardColor === 'locomotive'
+            ? 'linear-gradient(135deg, #c83e31 0%, #d99b26 35%, #3a7d44 70%, #2a6f97 100%)'
+            : hex;
+        el.style.color = cardColor === 'white' || cardColor === 'yellow' ? '#2b2118' : '#fffdf9';
+        el.textContent = cardColor === 'locomotive' ? '★ Wild Yak / Bus' : cardColor.toUpperCase();
+      }
+    );
+
     this.turnBanner = new MultiStateVar<TurnBannerBinding>({
       activePlayerId: 0,
       activePlayerName: 'Player 1',
@@ -156,5 +212,15 @@ export class BoardBinder {
         highlighted ? 'drop-shadow(0 0 6px #d99b26)' : 'none'
       );
     }
+  }
+
+  public syncHand(hand: Record<CardColor, number>): void {
+    const counts = ALL_CARD_COLORS.map((c) => hand[c] ?? 0);
+    this.handCardCounts.listTransition(counts);
+  }
+
+  public syncMarket(cards: Array<CardColor | null>): void {
+    const padded = Array.from({ length: 5 }, (_, i) => cards[i] ?? null);
+    this.marketSlots.listTransition(padded);
   }
 }
