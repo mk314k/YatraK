@@ -1,5 +1,5 @@
 import './style.css';
-import { renderGameWorkspaceMarkup } from './boardView';
+import { renderGameWorkspaceMarkup, attachBoardViewportInteractions } from './boardView';
 import { BoardBinder } from './binder';
 import { PlayerState } from './types';
 
@@ -42,4 +42,5 @@ if (appRoot) {
   const binder = new BoardBinder(initialPlayers.length);
   binder.syncHand(initialPlayers[0].hand);
   binder.syncMarket(['red', 'blue', 'locomotive', 'green', 'orange']);
+  attachBoardViewportInteractions(binder);
 }

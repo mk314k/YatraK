@@ -1,6 +1,6 @@
 import { NEPAL_CITIES, NEPAL_ROUTES, CITY_BY_ID, MAP_WIDTH, MAP_HEIGHT } from './nepalMapData';
-import { NepalRegion, NepalRoute, PlayerState, CARD_COLOR_HEX, ROUTE_COLOR_HEX } from './types';
-import { ALL_CARD_COLORS } from './binder';
+import { NepalRegion, NepalRoute, PlayerState, CARD_COLOR_HEX, ROUTE_COLOR_HEX, ROUTE_POINTS_TABLE } from './types';
+import { ALL_CARD_COLORS, BoardBinder } from './binder';
 
 const REGION_BADGE_COLOR: Record<NepalRegion, string> = {
   himalaya: '#3b6e8c',
@@ -250,6 +250,11 @@ export function renderGameWorkspaceMarkup(players: PlayerState[]): string {
         <main class="board-stage">
           <div id="map-viewport" class="map-viewport">
             ${renderNepalMapSvg()}
+            <div class="map-zoom-controls">
+              <button type="button" id="btn-zoom-in" class="zoom-btn" title="Zoom In">+</button>
+              <button type="button" id="btn-zoom-reset" class="zoom-btn" title="Reset View">100%</button>
+              <button type="button" id="btn-zoom-out" class="zoom-btn" title="Zoom Out">−</button>
+            </div>
             <div id="board-tooltip" class="board-tooltip hidden"></div>
           </div>
         </main>
@@ -281,4 +286,91 @@ export function renderGameWorkspaceMarkup(players: PlayerState[]): string {
       <div id="modal-overlay" class="modal-overlay hidden"></div>
     </div>
   `;
+}
+
+export function attachBoardViewportInteractions(binder: BoardBinder): void {
+  const svg = document.getElementById('nepal-board-svg') as SVGSVGElement | null;
+  const tooltip = document.getElementById('board-tooltip');
+  const zoomInBtn = document.getElementById('btn-zoom-in');
+  const zoomOutBtn = document.getElementById('btn-zoom-out');
+  const zoomResetBtn = document.getElementById('btn-zoom-reset');
+
+  let zoom = 1;
+  const applyZoom = () => {
+    if (svg) {
+      svg.style.transform = `scale(${zoom})`;
+    }
+    if (zoomResetBtn) {
+      zoomResetBtn.textContent = `${Math.round(zoom * 100)}%`;
+    }
+  };
+
+  zoomInBtn?.addEventListener('click', () => {
+    zoom = Math.min(1.6, Number((zoom + 0.15).toFixed(2)));
+    applyZoom();
+  });
+
+  zoomOutBtn?.addEventListener('click', () => {
+    zoom = Math.max(0.75, Number((zoom - 0.15).toFixed(2)));
+    applyZoom();
+  });
+
+  zoomResetBtn?.addEventListener('click', () => {
+    zoom = 1;
+    applyZoom();
+  });
+
+  const showTooltip = (html: string, clientX: number, clientY: number) => {
+    if (!tooltip) return;
+    const viewport = document.getElementById('map-viewport');
+    const rect = viewport?.getBoundingClientRect();
+    const relX = rect ? clientX - rect.left + 14 : clientX;
+    const relY = rect ? clientY - rect.top - 12 : clientY;
+    tooltip.innerHTML = html;
+    tooltip.style.left = `${relX}px`;
+    tooltip.style.top = `${relY}px`;
+    tooltip.classList.remove('hidden');
+  };
+
+  const hideTooltip = () => {
+    tooltip?.classList.add('hidden');
+  };
+
+  document.querySelectorAll('.city-node').forEach((node) => {
+    node.addEventListener('mousemove', (e) => {
+      const ev = e as MouseEvent;
+      const cityId = node.getAttribute('data-city') ?? '';
+      const city = CITY_BY_ID.get(cityId);
+      if (!city) return;
+      showTooltip(
+        `<strong>${city.name} (${city.nepaliName})</strong><br/>Region: ${city.region.toUpperCase()} • ${city.elevationMeters}m`,
+        ev.clientX,
+        ev.clientY
+      );
+    });
+    node.addEventListener('mouseleave', hideTooltip);
+  });
+
+  document.querySelectorAll('.route-group').forEach((group) => {
+    group.addEventListener('mousemove', (e) => {
+      const ev = e as MouseEvent;
+      const routeId = Number(group.getAttribute('data-route-id') ?? '-1');
+      const route = NEPAL_ROUTES[routeId];
+      if (!route) return;
+      const fromName = CITY_BY_ID.get(route.from)?.name ?? route.from;
+      const toName = CITY_BY_ID.get(route.to)?.name ?? route.to;
+      const pts = ROUTE_POINTS_TABLE[route.length] ?? 1;
+      const owner = binder.routeOwners.current(routeId);
+      const passBadge = route.isMountainPass ? ' • 🏔️ Mountain Pass (+2 bonus pts)' : '';
+      const ownerLine = owner?.ownerId !== null
+        ? `<br/>Claimed by: <strong>${owner.ownerName}</strong>`
+        : `<br/>Color: <strong>${route.color.toUpperCase()}</strong> • Length: ${route.length} (${pts} pts)${passBadge}`;
+      showTooltip(
+        `<strong>${fromName} ↔ ${toName}</strong>${ownerLine}`,
+        ev.clientX,
+        ev.clientY
+      );
+    });
+    group.addEventListener('mouseleave', hideTooltip);
+  });
 }
