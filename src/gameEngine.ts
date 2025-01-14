@@ -107,6 +107,63 @@ export class NepalGameEngine {
     }
   }
 
+  public drawBlindCard(): void {
+    if (this.phase !== 'choose-action' && this.phase !== 'drawing-second-card') {
+      return;
+    }
+    const player = this.players[this.activePlayerIdx];
+    const drawn = this.drawSingleFromDeck();
+    if (!drawn) {
+      this.logEvent('Transport deck is empty!');
+      return;
+    }
+    player.hand[drawn] += 1;
+    if (this.phase === 'choose-action') {
+      this.phase = 'drawing-second-card';
+      this.logEvent(`${player.name} drew 1 blind card. Draw 1 more card (face-up Wild not allowed).`);
+      this.syncAllBindings('Draw 1 more card from the blind deck or a non-wild market slot.');
+    } else {
+      this.logEvent(`${player.name} completed drawing 2 transport cards.`);
+      this.advanceTurn();
+    }
+  }
+
+  public drawMarketCard(slotIdx: number): void {
+    if (this.phase !== 'choose-action' && this.phase !== 'drawing-second-card') {
+      return;
+    }
+    const card = this.market[slotIdx];
+    if (!card) return;
+
+    if (this.phase === 'drawing-second-card' && card === 'locomotive') {
+      this.logEvent('Cannot take a face-up Wild Locomotive as your second card!');
+      return;
+    }
+
+    const player = this.players[this.activePlayerIdx];
+    player.hand[card] += 1;
+    this.replenishMarketSlot(slotIdx);
+
+    if (card === 'locomotive') {
+      this.logEvent(`${player.name} took a face-up ★ Wild Locomotive (counts as 2 draws).`);
+      this.advanceTurn();
+    } else if (this.phase === 'choose-action') {
+      this.phase = 'drawing-second-card';
+      this.logEvent(`${player.name} took a ${card.toUpperCase()} card. Draw 1 more card.`);
+      this.syncAllBindings('Draw 1 more card (blind deck or non-wild market card).');
+    } else {
+      this.logEvent(`${player.name} took a ${card.toUpperCase()} card and finished their turn.`);
+      this.advanceTurn();
+    }
+  }
+
+  public advanceTurn(): void {
+    this.phase = 'choose-action';
+    this.activePlayerIdx = (this.activePlayerIdx + 1) % this.players.length;
+    const nextPlayer = this.players[this.activePlayerIdx];
+    this.syncAllBindings(`${nextPlayer.name}'s turn — Draw cards, claim a route, or draw tickets.`);
+  }
+
   public syncAllBindings(statusMessage: string): void {
     const humanPlayer = this.players[0];
     if (humanPlayer) {
