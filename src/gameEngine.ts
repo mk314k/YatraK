@@ -75,6 +75,7 @@ export class NepalGameEngine {
     for (let slot = 0; slot < 5; slot++) {
       this.market[slot] = this.drawSingleFromDeck();
     }
+    this.checkMarketLocomotiveWipe();
 
     this.syncAllBindings('Draw 2 transport cards, claim a route, or draw destination tickets.');
   }
@@ -89,8 +90,25 @@ export class NepalGameEngine {
 
   public replenishMarketSlot(slotIdx: number): void {
     this.market[slotIdx] = this.drawSingleFromDeck();
+    this.checkMarketLocomotiveWipe();
     this.binder.syncMarket(this.market);
     this.updateDeckRemainingCount();
+  }
+
+  public checkMarketLocomotiveWipe(): void {
+    let safety = 0;
+    while (safety < 5) {
+      const locoCount = this.market.filter((c) => c === 'locomotive').length;
+      if (locoCount < 3) break;
+      safety += 1;
+      for (const c of this.market) {
+        if (c) this.discardPile.push(c);
+      }
+      for (let i = 0; i < 5; i++) {
+        this.market[i] = this.drawSingleFromDeck();
+      }
+      this.logEvent('3+ Wild Locomotives in market — wiped and dealt 5 fresh transport cards!');
+    }
   }
 
   public updateDeckRemainingCount(): void {
