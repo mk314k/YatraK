@@ -1,6 +1,6 @@
 import { ALL_CARD_COLORS, BoardBinder } from './binder';
-import { NEPAL_TICKETS } from './nepalMapData';
-import { CardColor, DestinationTicket, PlayerState, TurnPhase } from './types';
+import { CITY_BY_ID, NEPAL_ROUTES, NEPAL_TICKETS } from './nepalMapData';
+import { CardColor, DestinationTicket, NepalRoute, PlayerState, ROUTE_POINTS_TABLE, TurnPhase } from './types';
 
 function shuffleArray<T>(items: T[]): T[] {
   const copy = [...items];
@@ -180,6 +180,99 @@ export class NepalGameEngine {
     this.activePlayerIdx = (this.activePlayerIdx + 1) % this.players.length;
     const nextPlayer = this.players[this.activePlayerIdx];
     this.syncAllBindings(`${nextPlayer.name}'s turn — Draw cards, claim a route, or draw tickets.`);
+  }
+
+  public findPayableColorForRoute(
+    player: PlayerState,
+    route: NepalRoute
+  ): { colorUsed: Exclude<CardColor, 'locomotive'>; colorCount: number; wildCount: number } | null {
+    const needed = route.length;
+    if (player.carriages < needed) return null;
+
+    const wilds = player.hand.locomotive ?? 0;
+    const baseColors: Array<Exclude<CardColor, 'locomotive'>> = [
+      'red',
+      'blue',
+      'green',
+      'yellow',
+      'orange',
+      'purple',
+      'white',
+      'black',
+    ];
+
+    if (route.color !== 'gray') {
+      const targetColor = route.color;
+      const haveColor = player.hand[targetColor] ?? 0;
+      if (haveColor + wilds < needed) return null;
+      const useColor = Math.min(needed, haveColor);
+      const useWild = needed - useColor;
+      return { colorUsed: targetColor, colorCount: useColor, wildCount: useWild };
+    }
+
+    let bestChoice: { colorUsed: Exclude<CardColor, 'locomotive'>; colorCount: number; wildCount: number } | null = null;
+    for (const col of baseColors) {
+      const haveColor = player.hand[col] ?? 0;
+      if (haveColor + wilds >= needed) {
+        const useColor = Math.min(needed, haveColor);
+        const useWild = needed - useColor;
+        if (!bestChoice || useWild < bestChoice.wildCount) {
+          bestChoice = { colorUsed: col, colorCount: useColor, wildCount: useWild };
+        }
+      }
+    }
+    return bestChoice;
+  }
+
+  public canClaimRoute(playerIdx: number, routeId: number): boolean {
+    if (this.phase !== 'choose-action') return false;
+    const route = NEPAL_ROUTES[routeId];
+    if (!route || this.routeOwners[routeId] !== null) return false;
+
+    const sibling = NEPAL_ROUTES.find(
+      (r) =>
+        r.id !== route.id &&
+        ((r.from === route.from && r.to === route.to) || (r.from === route.to && r.to === route.from))
+    );
+    if (sibling && this.routeOwners[sibling.id] === playerIdx) {
+      return false;
+    }
+    if (sibling && this.players.length <= 3 && this.routeOwners[sibling.id] !== null) {
+      return false;
+    }
+
+    const player = this.players[playerIdx];
+    return this.findPayableColorForRoute(player, route) !== null;
+  }
+
+  public tryClaimRoute(routeId: number): boolean {
+    if (!this.canClaimRoute(this.activePlayerIdx, routeId)) {
+      this.logEvent('Cannot claim this route yet — check required cards, carriages, or double-route rules.');
+      return false;
+    }
+    const route = NEPAL_ROUTES[routeId];
+    const player = this.players[this.activePlayerIdx];
+    const payment = this.findPayableColorForRoute(player, route);
+    if (!payment) return false;
+
+    player.hand[payment.colorUsed] -= payment.colorCount;
+    player.hand.locomotive -= payment.wildCount;
+    for (let i = 0; i < payment.colorCount; i++) this.discardPile.push(payment.colorUsed);
+    for (let i = 0; i < payment.wildCount; i++) this.discardPile.push('locomotive');
+
+    player.carriages -= route.length;
+    const gainedPoints = ROUTE_POINTS_TABLE[route.length] ?? 1;
+    player.score += gainedPoints;
+
+    this.routeOwners[routeId] = player.id;
+    this.binder.claimRoute(routeId, player.id, player.colorHex, player.name);
+
+    const fromName = CITY_BY_ID.get(route.from)?.name ?? route.from;
+    const toName = CITY_BY_ID.get(route.to)?.name ?? route.to;
+    this.logEvent(`${player.name} claimed ${fromName} ↔ ${toName} (+${gainedPoints} pts)!`);
+
+    this.advanceTurn();
+    return true;
   }
 
   public syncAllBindings(statusMessage: string): void {
