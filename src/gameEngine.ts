@@ -255,21 +255,57 @@ export class NepalGameEngine {
     const payment = this.findPayableColorForRoute(player, route);
     if (!payment) return false;
 
+    const fromName = CITY_BY_ID.get(route.from)?.name ?? route.from;
+    const toName = CITY_BY_ID.get(route.to)?.name ?? route.to;
+
+    let extraPassTax = 0;
+    if (route.isMountainPass) {
+      const weatherCard = this.drawSingleFromDeck();
+      if (weatherCard) {
+        this.discardPile.push(weatherCard);
+        if (weatherCard === 'locomotive' || weatherCard === payment.colorUsed) {
+          const remainingSame = (player.hand[payment.colorUsed] ?? 0) - payment.colorCount;
+          const remainingWild = (player.hand.locomotive ?? 0) - payment.wildCount;
+          if (remainingSame <= 0 && remainingWild <= 0) {
+            this.logEvent(
+              `🏔️ Mountain Pass weather check drew ${weatherCard.toUpperCase()} on ${fromName} ↔ ${toName}! Needed 1 extra card — expedition turned back.`
+            );
+            this.advanceTurn();
+            return false;
+          }
+          extraPassTax = 1;
+        }
+      }
+    }
+
     player.hand[payment.colorUsed] -= payment.colorCount;
     player.hand.locomotive -= payment.wildCount;
     for (let i = 0; i < payment.colorCount; i++) this.discardPile.push(payment.colorUsed);
     for (let i = 0; i < payment.wildCount; i++) this.discardPile.push('locomotive');
 
+    if (extraPassTax > 0) {
+      if (player.hand[payment.colorUsed] > 0) {
+        player.hand[payment.colorUsed] -= 1;
+        this.discardPile.push(payment.colorUsed);
+      } else {
+        player.hand.locomotive -= 1;
+        this.discardPile.push('locomotive');
+      }
+    }
+
     player.carriages -= route.length;
-    const gainedPoints = ROUTE_POINTS_TABLE[route.length] ?? 1;
+    const basePoints = ROUTE_POINTS_TABLE[route.length] ?? 1;
+    const passBonus = route.isMountainPass ? 2 : 0;
+    const gainedPoints = basePoints + passBonus;
     player.score += gainedPoints;
 
     this.routeOwners[routeId] = player.id;
     this.binder.claimRoute(routeId, player.id, player.colorHex, player.name);
 
-    const fromName = CITY_BY_ID.get(route.from)?.name ?? route.from;
-    const toName = CITY_BY_ID.get(route.to)?.name ?? route.to;
-    this.logEvent(`${player.name} claimed ${fromName} ↔ ${toName} (+${gainedPoints} pts)!`);
+    const passNote = route.isMountainPass
+      ? ` (includes +2 Himalayan Pass bonus${extraPassTax ? ', +1 weather card paid' : ''})`
+      : '';
+    this.logEvent(`${player.name} claimed ${fromName} ↔ ${toName} (+${gainedPoints} pts)${passNote}!`);
 
     this.advanceTurn();
     return true;
