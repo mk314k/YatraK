@@ -44,6 +44,8 @@ export class NepalGameEngine {
   public discardPile: CardColor[] = [];
   public market: Array<CardColor | null> = [null, null, null, null, null];
   public ticketDeck: DestinationTicket[] = [];
+  public pendingTickets: DestinationTicket[] = [];
+  public minTicketsToKeep = 1;
   public routeOwners: Array<number | null>;
   public activePlayerIdx = 0;
   public phase: TurnPhase = 'choose-action';
@@ -116,6 +118,140 @@ export class NepalGameEngine {
     if (deckCountEl) {
       deckCountEl.textContent = `${this.deck.length} cards`;
     }
+  }
+
+  public startTicketDraft(isInitialSetup = false): boolean {
+    if (!isInitialSetup && this.phase !== 'choose-action') {
+      return false;
+    }
+    if (this.ticketDeck.length === 0) {
+      this.logEvent('No more Destination Tickets remaining in the deck!');
+      return false;
+    }
+    this.pendingTickets = this.ticketDeck.splice(0, 3);
+    this.minTicketsToKeep = isInitialSetup ? Math.min(2, this.pendingTickets.length) : 1;
+    this.phase = isInitialSetup ? 'setup-tickets' : 'selecting-tickets';
+    this.syncAllBindings(`Select at least ${this.minTicketsToKeep} Destination Ticket(s) to keep.`);
+    this.renderTicketDraftModal();
+    return true;
+  }
+
+  public confirmTicketDraft(selectedTicketIds: number[]): boolean {
+    if (selectedTicketIds.length < this.minTicketsToKeep) {
+      return false;
+    }
+    const player = this.players[this.activePlayerIdx];
+    const kept: DestinationTicket[] = [];
+    const returned: DestinationTicket[] = [];
+
+    for (const t of this.pendingTickets) {
+      if (selectedTicketIds.includes(t.id)) {
+        kept.push(t);
+      } else {
+        returned.push(t);
+      }
+    }
+
+    player.tickets.push(...kept);
+    this.ticketDeck.push(...returned);
+    const wasSetup = this.phase === 'setup-tickets';
+    this.pendingTickets = [];
+
+    const modal = document.getElementById('modal-overlay');
+    modal?.classList.add('hidden');
+    this.renderPlayerTicketsList();
+
+    if (wasSetup) {
+      this.phase = 'choose-action';
+      this.logEvent(`${player.name} kept ${kept.length} initial Destination Tickets. Game begins!`);
+      this.syncAllBindings('Draw 2 transport cards, claim a route, or draw destination tickets.');
+    } else {
+      this.logEvent(`${player.name} drafted ${kept.length} new Destination Ticket(s).`);
+      this.advanceTurn();
+    }
+    return true;
+  }
+
+  public renderPlayerTicketsList(): void {
+    const listEl = document.getElementById('player-tickets-list');
+    const human = this.players[0];
+    if (!listEl || !human) return;
+
+    listEl.innerHTML = human.tickets
+      .map((t) => {
+        const fromName = CITY_BY_ID.get(t.from)?.name ?? t.from;
+        const toName = CITY_BY_ID.get(t.to)?.name ?? t.to;
+        return `
+          <div class="ticket-card${t.completed ? ' completed' : ''}" data-from="${t.from}" data-to="${t.to}">
+            <div class="ticket-route-line">
+              <span>${fromName} → ${toName}</span>
+              <span>${t.completed ? '✓ ' : ''}+${t.points}</span>
+            </div>
+            <div class="ticket-corridor">${t.corridorName}</div>
+          </div>
+        `;
+      })
+      .join('');
+  }
+
+  public renderTicketDraftModal(): void {
+    const modal = document.getElementById('modal-overlay');
+    if (!modal || this.pendingTickets.length === 0) return;
+
+    const selected = new Set<number>(this.pendingTickets.map((t) => t.id));
+
+    const drawModalContent = () => {
+      const canConfirm = selected.size >= this.minTicketsToKeep;
+      const cardsHtml = this.pendingTickets
+        .map((t) => {
+          const isChecked = selected.has(t.id);
+          const fromName = CITY_BY_ID.get(t.from)?.name ?? t.from;
+          const toName = CITY_BY_ID.get(t.to)?.name ?? t.to;
+          return `
+            <label class="draft-ticket-option${isChecked ? ' selected' : ''}" data-ticket-id="${t.id}">
+              <input type="checkbox" ${isChecked ? 'checked' : ''} data-ticket-check="${t.id}" />
+              <div class="draft-ticket-info">
+                <strong>${fromName} ↔ ${toName} (+${t.points} pts)</strong>
+                <small>${t.corridorName}</small>
+              </div>
+            </label>
+          `;
+        })
+        .join('');
+
+      modal.innerHTML = `
+        <div class="modal-card">
+          <h3>Draft Destination Tickets</h3>
+          <p class="modal-subtitle">Choose at least <strong>${this.minTicketsToKeep}</strong> ticket(s) to keep. Completed tickets add points; uncompleted tickets deduct points at game end.</p>
+          <div class="draft-tickets-stack">${cardsHtml}</div>
+          <div class="modal-actions">
+            <button type="button" id="btn-confirm-tickets" class="top-btn primary" ${canConfirm ? '' : 'disabled'}>
+              Keep ${selected.size} Ticket(s)
+            </button>
+          </div>
+        </div>
+      `;
+
+      modal.querySelectorAll('[data-ticket-check]').forEach((input) => {
+        input.addEventListener('change', (e) => {
+          const id = Number((e.currentTarget as HTMLElement).getAttribute('data-ticket-check'));
+          if (selected.has(id)) {
+            selected.delete(id);
+          } else {
+            selected.add(id);
+          }
+          drawModalContent();
+        });
+      });
+
+      const confirmBtn = document.getElementById('btn-confirm-tickets');
+      confirmBtn?.addEventListener('click', () => {
+        this.confirmTicketDraft(Array.from(selected));
+      });
+    };
+
+    drawModalContent();
+    modal.classList.remove('hidden');
   }
 
   public logEvent(message: string): void {
@@ -315,6 +451,7 @@ export class NepalGameEngine {
     const humanPlayer = this.players[0];
     if (humanPlayer) {
       this.binder.syncHand(humanPlayer.hand);
+      this.renderPlayerTicketsList();
     }
     this.binder.syncMarket(this.market);
     this.players.forEach((p, idx) => {

@@ -442,3 +442,70 @@ button {
 .hidden {
   display: none !important;
 }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 33, 24, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-card {
+  width: min(480px, 92vw);
+  background: var(--bg-surface);
+  border: 2px solid var(--border-warm);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 20px 44px rgba(43, 33, 24, 0.28);
+}
+
+.modal-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.draft-tickets-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draft-ticket-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-panel);
+  border: 2px solid var(--border-warm);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.draft-ticket-option.selected {
+  border-color: var(--accent-terracotta);
+  background: #f5ebe0;
+}
+
+.draft-ticket-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.84rem;
+}
+
+.draft-ticket-info small {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
