@@ -1,4 +1,5 @@
 import { ALL_CARD_COLORS, BoardBinder } from './binder';
+import { updateTicketsCompletionForPlayer } from './graph';
 import { CITY_BY_ID, NEPAL_ROUTES, NEPAL_TICKETS } from './nepalMapData';
 import { CardColor, DestinationTicket, NepalRoute, PlayerState, ROUTE_POINTS_TABLE, TurnPhase } from './types';
 
@@ -437,6 +438,7 @@ export class NepalGameEngine {
 
     this.routeOwners[routeId] = player.id;
     this.binder.claimRoute(routeId, player.id, player.colorHex, player.name);
+    updateTicketsCompletionForPlayer(player.tickets, player.id, this.routeOwners);
 
     const passNote = route.isMountainPass
       ? ` (includes +2 Himalayan Pass bonus${extraPassTax ? ', +1 weather card paid' : ''})`
