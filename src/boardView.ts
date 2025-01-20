@@ -1,6 +1,7 @@
 import { NEPAL_CITIES, NEPAL_ROUTES, CITY_BY_ID, MAP_WIDTH, MAP_HEIGHT } from './nepalMapData';
 import { NepalRegion, NepalRoute, PlayerState, CARD_COLOR_HEX, ROUTE_COLOR_HEX, ROUTE_POINTS_TABLE } from './types';
 import { ALL_CARD_COLORS, BoardBinder } from './binder';
+import { getConnectedComponent } from './graph';
 
 const REGION_BADGE_COLOR: Record<NepalRegion, string> = {
   himalaya: '#3b6e8c',
@@ -288,7 +289,10 @@ export function renderGameWorkspaceMarkup(players: PlayerState[]): string {
   `;
 }
 
-export function attachBoardViewportInteractions(binder: BoardBinder): void {
+export function attachBoardViewportInteractions(
+  binder: BoardBinder,
+  getRouteOwners?: () => Array<number | null>
+): void {
   const svg = document.getElementById('nepal-board-svg') as SVGSVGElement | null;
   const tooltip = document.getElementById('board-tooltip');
   const zoomInBtn = document.getElementById('btn-zoom-in');
@@ -347,8 +351,21 @@ export function attachBoardViewportInteractions(binder: BoardBinder): void {
         ev.clientX,
         ev.clientY
       );
+      if (getRouteOwners) {
+        const connected = getConnectedComponent(cityId, 0, getRouteOwners());
+        if (connected.size > 1) {
+          connected.forEach((cid) => {
+            document.getElementById(`city-${cid}`)?.classList.add('city-network-connected');
+          });
+        }
+      }
     });
-    node.addEventListener('mouseleave', hideTooltip);
+    node.addEventListener('mouseleave', () => {
+      hideTooltip();
+      document.querySelectorAll('.city-network-connected').forEach((el) => {
+        el.classList.remove('city-network-connected');
+      });
+    });
   });
 
   document.querySelectorAll('.route-group').forEach((group) => {

@@ -193,6 +193,20 @@ export class NepalGameEngine {
         `;
       })
       .join('');
+
+    listEl.querySelectorAll('.ticket-card').forEach((card) => {
+      card.addEventListener('mouseenter', () => {
+        const fromId = card.getAttribute('data-from') ?? '';
+        const toId = card.getAttribute('data-to') ?? '';
+        document.getElementById(`city-${fromId}`)?.classList.add('city-ticket-focus');
+        document.getElementById(`city-${toId}`)?.classList.add('city-ticket-focus');
+      });
+      card.addEventListener('mouseleave', () => {
+        document.querySelectorAll('.city-ticket-focus').forEach((el) => {
+          el.classList.remove('city-ticket-focus');
+        });
+      });
+    });
   }
 
   public renderTicketDraftModal(): void {

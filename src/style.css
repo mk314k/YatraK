@@ -340,6 +340,20 @@ button {
   cursor: pointer;
 }
 
+.city-ticket-focus .city-dot,
+.city-network-connected .city-dot {
+  stroke: #d99b26 !important;
+  stroke-width: 5px !important;
+  fill: #fff3c4 !important;
+}
+
+.city-ticket-focus .city-halo,
+.city-network-connected .city-halo {
+  r: 18px;
+  fill: #d99b26 !important;
+  opacity: 0.55 !important;
+}
+
 .blind-deck-btn {
   padding: 10px;
   border-radius: 10px;
