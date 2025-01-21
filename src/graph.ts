@@ -61,3 +61,61 @@ export function updateTicketsCompletionForPlayer(
     ticket.completed = areCitiesConnectedForPlayer(ticket.from, ticket.to, playerId, routeOwners);
   }
 }
+
+export interface LongestTrailResult {
+  length: number;
+  routeIds: number[];
+}
+
+export function computeLongestTrailForPlayer(
+  playerId: number,
+  routeOwners: Array<number | null>
+): LongestTrailResult {
+  interface EdgeRef {
+    routeId: number;
+    to: string;
+    weight: number;
+  }
+
+  const adj = new Map<string, EdgeRef[]>();
+  const cities = new Set<string>();
+
+  for (let i = 0; i < NEPAL_ROUTES.length; i++) {
+    if (routeOwners[i] !== playerId) continue;
+    const r = NEPAL_ROUTES[i];
+    cities.add(r.from);
+    cities.add(r.to);
+    if (!adj.has(r.from)) adj.set(r.from, []);
+    if (!adj.has(r.to)) adj.set(r.to, []);
+    adj.get(r.from)!.push({ routeId: r.id, to: r.to, weight: r.length });
+    adj.get(r.to)!.push({ routeId: r.id, to: r.from, weight: r.length });
+  }
+
+  let bestLength = 0;
+  let bestRouteIds: number[] = [];
+  const usedEdges = new Set<number>();
+  const currentTrail: number[] = [];
+
+  const dfs = (city: string, currentLen: number) => {
+    if (currentLen > bestLength) {
+      bestLength = currentLen;
+      bestRouteIds = [...currentTrail];
+    }
+    const edges = adj.get(city);
+    if (!edges) return;
+    for (const edge of edges) {
+      if (usedEdges.has(edge.routeId)) continue;
+      usedEdges.add(edge.routeId);
+      currentTrail.push(edge.routeId);
+      dfs(edge.to, currentLen + edge.weight);
+      currentTrail.pop();
+      usedEdges.delete(edge.routeId);
+    }
+  };
+
+  for (const startCity of cities) {
+    dfs(startCity, 0);
+  }
+
+  return { length: bestLength, routeIds: bestRouteIds };
+}
