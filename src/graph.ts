@@ -119,3 +119,86 @@ export function computeLongestTrailForPlayer(
 
   return { length: bestLength, routeIds: bestRouteIds };
 }
+
+export function findShortestUnclaimedRoutesForTicket(
+  fromCity: string,
+  toCity: string,
+  playerId: number,
+  routeOwners: Array<number | null>,
+  totalPlayers: number
+): number[] {
+  interface StepEdge {
+    to: string;
+    routeId: number;
+    cost: number;
+  }
+
+  const adj = new Map<string, StepEdge[]>();
+  for (let i = 0; i < NEPAL_ROUTES.length; i++) {
+    const r = NEPAL_ROUTES[i];
+    const owner = routeOwners[i];
+
+    if (owner !== null && owner !== playerId) {
+      continue;
+    }
+
+    if (owner === null) {
+      const sibling = NEPAL_ROUTES.find(
+        (other) =>
+          other.id !== r.id &&
+          ((other.from === r.from && other.to === r.to) || (other.from === r.to && other.to === r.from))
+      );
+      if (sibling) {
+        if (routeOwners[sibling.id] === playerId) continue;
+        if (totalPlayers <= 3 && routeOwners[sibling.id] !== null) continue;
+      }
+    }
+
+    const stepCost = owner === playerId ? 0 : r.length;
+    if (!adj.has(r.from)) adj.set(r.from, []);
+    if (!adj.has(r.to)) adj.set(r.to, []);
+    adj.get(r.from)!.push({ to: r.to, routeId: r.id, cost: stepCost });
+    adj.get(r.to)!.push({ to: r.from, routeId: r.id, cost: stepCost });
+  }
+
+  const dist = new Map<string, number>([[fromCity, 0]]);
+  const prevEdge = new Map<string, { prevCity: string; routeId: number }>();
+  const visited = new Set<string>();
+
+  while (visited.size <= NEPAL_ROUTES.length) {
+    let closestCity: string | null = null;
+    let bestD = Infinity;
+    for (const [city, d] of dist.entries()) {
+      if (!visited.has(city) && d < bestD) {
+        bestD = d;
+        closestCity = city;
+      }
+    }
+    if (!closestCity || closestCity === toCity) break;
+    visited.add(closestCity);
+
+    const neighbors = adj.get(closestCity) ?? [];
+    for (const edge of neighbors) {
+      if (visited.has(edge.to)) continue;
+      const cand = bestD + edge.cost;
+      if (cand < (dist.get(edge.to) ?? Infinity)) {
+        dist.set(edge.to, cand);
+        prevEdge.set(edge.to, { prevCity: closestCity, routeId: edge.routeId });
+      }
+    }
+  }
+
+  if (!dist.has(toCity)) return [];
+
+  const neededRoutes: number[] = [];
+  let cur = toCity;
+  while (cur !== fromCity) {
+    const step = prevEdge.get(cur);
+    if (!step) break;
+    if (routeOwners[step.routeId] === null) {
+      neededRoutes.push(step.routeId);
+    }
+    cur = step.prevCity;
+  }
+  return neededRoutes;
+}
