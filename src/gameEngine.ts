@@ -1,5 +1,5 @@
 import { ALL_CARD_COLORS, BoardBinder } from './binder';
-import { updateTicketsCompletionForPlayer } from './graph';
+import { findShortestUnclaimedRoutesForTicket, updateTicketsCompletionForPlayer } from './graph';
 import { CITY_BY_ID, NEPAL_ROUTES, NEPAL_TICKETS } from './nepalMapData';
 import { CardColor, DestinationTicket, NepalRoute, PlayerState, ROUTE_POINTS_TABLE, TurnPhase } from './types';
 
@@ -331,6 +331,85 @@ export class NepalGameEngine {
     this.activePlayerIdx = (this.activePlayerIdx + 1) % this.players.length;
     const nextPlayer = this.players[this.activePlayerIdx];
     this.syncAllBindings(`${nextPlayer.name}'s turn — Draw cards, claim a route, or draw tickets.`);
+
+    if (nextPlayer.personality !== 'human') {
+      window.setTimeout(() => {
+        this.executeBotTurn();
+      }, 650);
+    }
+  }
+
+  public executeBotTurn(): void {
+    if (this.phase === 'game-over') return;
+    const bot = this.players[this.activePlayerIdx];
+    if (!bot || bot.personality === 'human') return;
+
+    const plannedRouteIds = new Set<number>();
+    for (const ticket of bot.tickets) {
+      if (!ticket.completed) {
+        const steps = findShortestUnclaimedRoutesForTicket(
+          ticket.from,
+          ticket.to,
+          bot.id,
+          this.routeOwners,
+          this.players.length
+        );
+        steps.forEach((rid) => plannedRouteIds.add(rid));
+      }
+    }
+
+    const claimableRoutes = NEPAL_ROUTES.filter((r) => this.canClaimRoute(this.activePlayerIdx, r.id));
+
+    if (claimableRoutes.length > 0) {
+      const scored = claimableRoutes.map((r) => {
+        let priority = r.length * 3;
+        if (plannedRouteIds.has(r.id)) priority += 25;
+        if (bot.personality === 'sherpa' && r.isMountainPass) priority += 12;
+        if (bot.personality === 'express' && r.length >= 3) priority += 10;
+        if (bot.personality === 'blocker') {
+          const fromHub = CITY_BY_ID.get(r.from)?.isHub;
+          const toHub = CITY_BY_ID.get(r.to)?.isHub;
+          if (fromHub && toHub) priority += 14;
+        }
+        return { route: r, priority };
+      });
+      scored.sort((a, b) => b.priority - a.priority);
+      const chosen = scored[0].route;
+      if (scored[0].priority >= 12 || bot.carriages <= 10) {
+        this.tryClaimRoute(chosen.id);
+        return;
+      }
+    }
+
+    const neededColors = new Set<CardColor>();
+    plannedRouteIds.forEach((rid) => {
+      const r = NEPAL_ROUTES[rid];
+      if (r && r.color !== 'gray') {
+        neededColors.add(r.color);
+      }
+    });
+
+    const locoSlot = this.market.findIndex((c) => c === 'locomotive');
+    if (locoSlot !== -1 && (bot.personality === 'sherpa' || neededColors.size === 0)) {
+      this.drawMarketCard(locoSlot);
+      return;
+    }
+
+    const matchingSlot = this.market.findIndex((c) => c !== null && c !== 'locomotive' && neededColors.has(c));
+    if (matchingSlot !== -1) {
+      this.drawMarketCard(matchingSlot);
+    } else {
+      this.drawBlindCard();
+    }
+
+    if (this.phase === 'drawing-second-card' && this.activePlayerIdx === bot.id) {
+      const secondSlot = this.market.findIndex((c) => c !== null && c !== 'locomotive' && neededColors.has(c));
+      if (secondSlot !== -1) {
+        this.drawMarketCard(secondSlot);
+      } else {
+        this.drawBlindCard();
+      }
+    }
   }
 
   public findPayableColorForRoute(
