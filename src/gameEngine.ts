@@ -1,5 +1,5 @@
 import { ALL_CARD_COLORS, BoardBinder } from './binder';
-import { findShortestUnclaimedRoutesForTicket, updateTicketsCompletionForPlayer } from './graph';
+import { computeLongestTrailForPlayer, findShortestUnclaimedRoutesForTicket, updateTicketsCompletionForPlayer } from './graph';
 import { CITY_BY_ID, NEPAL_ROUTES, NEPAL_TICKETS } from './nepalMapData';
 import { CardColor, DestinationTicket, NepalRoute, PlayerState, ROUTE_POINTS_TABLE, TurnPhase } from './types';
 
@@ -50,6 +50,7 @@ export class NepalGameEngine {
   public routeOwners: Array<number | null>;
   public activePlayerIdx = 0;
   public phase: TurnPhase = 'choose-action';
+  public finalTurnsRemaining: number | null = null;
   public binder: BoardBinder;
 
   public constructor(players: PlayerState[], binder: BoardBinder, routeCount = 56) {
@@ -327,6 +328,20 @@ export class NepalGameEngine {
   }
 
   public advanceTurn(): void {
+    const justPlayed = this.players[this.activePlayerIdx];
+    if (this.finalTurnsRemaining === null && justPlayed.carriages <= 2) {
+      this.finalTurnsRemaining = this.players.length;
+      this.logEvent(`🔔 ${justPlayed.name} has ${justPlayed.carriages} carriages left! Final round triggered.`);
+    }
+
+    if (this.finalTurnsRemaining !== null) {
+      this.finalTurnsRemaining -= 1;
+      if (this.finalTurnsRemaining <= 0) {
+        this.finishGameAndScore();
+        return;
+      }
+    }
+
     this.phase = 'choose-action';
     this.activePlayerIdx = (this.activePlayerIdx + 1) % this.players.length;
     const nextPlayer = this.players[this.activePlayerIdx];
@@ -336,6 +351,75 @@ export class NepalGameEngine {
       window.setTimeout(() => {
         this.executeBotTurn();
       }, 650);
+    }
+  }
+
+  public finishGameAndScore(): void {
+    this.phase = 'game-over';
+
+    const trails = this.players.map((p) => computeLongestTrailForPlayer(p.id, this.routeOwners));
+    const maxTrailLen = Math.max(0, ...trails.map((t) => t.length));
+
+    const summaryRows: string[] = [];
+    for (let i = 0; i < this.players.length; i++) {
+      const p = this.players[i];
+      updateTicketsCompletionForPlayer(p.tickets, p.id, this.routeOwners);
+      const routeScore = p.score;
+      let ticketBonus = 0;
+      for (const t of p.tickets) {
+        ticketBonus += t.completed ? t.points : -t.points;
+      }
+      const hasLongest = maxTrailLen > 0 && trails[i].length === maxTrailLen;
+      const longestBonus = hasLongest ? 10 : 0;
+      if (hasLongest) {
+        trails[i].routeIds.forEach((rid) => this.binder.setRouteHighlight(rid, true));
+      }
+      p.score = routeScore + ticketBonus + longestBonus;
+
+      summaryRows.push(`
+        <tr>
+          <td><span class="player-dot" style="display:inline-block;background:${p.colorHex};margin-right:6px"></span><strong>${p.name}</strong></td>
+          <td>${routeScore}</td>
+          <td>${ticketBonus >= 0 ? `+${ticketBonus}` : ticketBonus}</td>
+          <td>${trails[i].length} segs ${hasLongest ? '(+10 🏆)' : ''}</td>
+          <td><strong>${p.score} pts</strong></td>
+        </tr>
+      `);
+    }
+
+    const sorted = [...this.players].sort((a, b) => b.score - a.score);
+    const winner = sorted[0];
+    this.syncAllBindings(`🏆 Expedition Complete! Winner: ${winner.name} (${winner.score} pts)`);
+
+    const modal = document.getElementById('modal-overlay');
+    if (modal) {
+      modal.innerHTML = `
+        <div class="modal-card modal-wide">
+          <h3>🏆 Expedition Complete — Final Standings</h3>
+          <p class="modal-subtitle">Winner: <strong>${winner.name}</strong> with <strong>${winner.score} points</strong>! Longest continuous trail highlighted in gold on the map.</p>
+          <table class="standings-table">
+            <thead>
+              <tr>
+                <th>Team</th>
+                <th>Routes</th>
+                <th>Tickets</th>
+                <th>Longest Trail</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${summaryRows.join('')}
+            </tbody>
+          </table>
+          <div class="modal-actions">
+            <button type="button" id="btn-close-standings" class="top-btn primary">Inspect Map</button>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+      document.getElementById('btn-close-standings')?.addEventListener('click', () => {
+        modal.classList.add('hidden');
+      });
     }
   }
 

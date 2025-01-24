@@ -479,6 +479,28 @@ button {
   box-shadow: 0 20px 44px rgba(43, 33, 24, 0.28);
 }
 
+.modal-card.modal-wide {
+  width: min(640px, 94vw);
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.standings-table th,
+.standings-table td {
+  border: 1px solid var(--border-warm);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.standings-table th {
+  background: var(--bg-panel);
+  font-weight: 800;
+}
+
 .modal-subtitle {
   font-size: 0.82rem;
   color: var(--text-muted);
