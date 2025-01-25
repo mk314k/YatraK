@@ -331,6 +331,35 @@ button {
   transition: opacity 0.15s ease;
 }
 
+@keyframes routeClaimPop {
+  0% { transform: scale(0.7); opacity: 0.4; }
+  65% { transform: scale(1.14); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.route-claimed .route-owner-overlay {
+  animation: routeClaimPop 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes floatScoreUp {
+  0% { opacity: 1; transform: translate(-50%, 0) scale(0.85); }
+  100% { opacity: 0; transform: translate(-50%, -32px) scale(1.05); }
+}
+
+.floating-score-popup {
+  position: absolute;
+  pointer-events: none;
+  color: #fffdf9;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 2px solid #fffdf9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+  animation: floatScoreUp 1.05s ease-out forwards;
+}
+
 .route-group:hover .route-bed {
   stroke: rgba(184, 93, 56, 0.55);
   stroke-width: 13;

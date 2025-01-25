@@ -277,6 +277,25 @@ export class NepalGameEngine {
     }
   }
 
+  public spawnFloatingRoutePopup(routeId: number, label: string, colorHex: string): void {
+    const tokenEl = document.getElementById(`route-owner-token-${routeId}`);
+    const viewport = document.getElementById('map-viewport');
+    if (!tokenEl || !viewport) return;
+    const tokenRect = tokenEl.getBoundingClientRect();
+    const viewRect = viewport.getBoundingClientRect();
+
+    const popup = document.createElement('div');
+    popup.className = 'floating-score-popup';
+    popup.textContent = label;
+    popup.style.backgroundColor = colorHex;
+    popup.style.left = `${tokenRect.left - viewRect.left}px`;
+    popup.style.top = `${tokenRect.top - viewRect.top - 10}px`;
+    viewport.appendChild(popup);
+    window.setTimeout(() => {
+      popup.remove();
+    }, 1100);
+  }
+
   public drawBlindCard(): void {
     if (this.phase !== 'choose-action' && this.phase !== 'drawing-second-card') {
       return;
@@ -616,6 +635,7 @@ export class NepalGameEngine {
     this.routeOwners[routeId] = player.id;
     this.binder.claimRoute(routeId, player.id, player.colorHex, player.name);
     updateTicketsCompletionForPlayer(player.tickets, player.id, this.routeOwners);
+    this.spawnFloatingRoutePopup(routeId, `+${gainedPoints} pts`, player.colorHex);
 
     const passNote = route.isMountainPass
       ? ` (includes +2 Himalayan Pass bonus${extraPassTax ? ', +1 weather card paid' : ''})`
