@@ -391,3 +391,45 @@ export function attachBoardViewportInteractions(
     group.addEventListener('mouseleave', hideTooltip);
   });
 }
+
+export function openRulesModal(): void {
+  const modal = document.getElementById('modal-overlay');
+  if (!modal) return;
+
+  modal.innerHTML = `
+    <div class="modal-card modal-wide">
+      <h3>🏔️ Ticket to Ride: Nepal — Rules &amp; Scoring</h3>
+      <p class="modal-subtitle">Connect Nepal's Terai plains, Pahad mid-hills, and Himalayan passes before any expedition runs down to 2 carriages.</p>
+      <div class="rules-grid">
+        <div class="rules-box">
+          <h4>On Your Turn (Pick 1 Action)</h4>
+          <ul>
+            <li><strong>Draw Transport Cards:</strong> Draw 2 cards from the market or blind deck. Taking a face-up ★ Wild Locomotive counts as both draws.</li>
+            <li><strong>Claim a Route:</strong> Click any unclaimed route on the map and play matching color cards (plus ★ Wilds).</li>
+            <li><strong>Draw Destination Tickets:</strong> Draw 3 tickets and keep at least 1.</li>
+          </ul>
+        </div>
+        <div class="rules-box">
+          <h4>🏔️ Nepal Mountain Pass Rule</h4>
+          <p>Routes marked with dashed borders and mountain peaks award <strong>+2 bonus points</strong>, but trigger a 1-card weather check from the deck. If it matches your color or is Wild, 1 extra card is required!</p>
+          <h4>Route Scoring Table</h4>
+          <table class="standings-table">
+            <thead>
+              <tr><th>Length</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Points</strong></td><td>1</td><td>2</td><td>4</td><td>7</td><td>10</td><td>15</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="btn-close-rules" class="top-btn primary">Got It</button>
+      </div>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+  document.getElementById('btn-close-rules')?.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+}
