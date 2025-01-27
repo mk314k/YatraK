@@ -1,9 +1,15 @@
 import './style.css';
-import { renderGameWorkspaceMarkup, attachBoardViewportInteractions } from './boardView';
+import {
+  renderGameWorkspaceMarkup,
+  attachBoardViewportInteractions,
+  openRulesModal,
+  openNewGameSetupModal,
+} from './boardView';
 import { BoardBinder } from './binder';
+import { NepalGameEngine, createEmptyHand } from './gameEngine';
 import { PlayerState } from './types';
 
-const initialPlayers: PlayerState[] = [
+const defaultPlayers: PlayerState[] = [
   {
     id: 0,
     name: 'Explorer (You)',
@@ -11,7 +17,7 @@ const initialPlayers: PlayerState[] = [
     personality: 'human',
     score: 0,
     carriages: 40,
-    hand: { red: 1, blue: 1, green: 1, yellow: 0, orange: 1, purple: 0, white: 0, black: 0, locomotive: 1 },
+    hand: createEmptyHand(),
     tickets: [],
   },
   {
@@ -21,7 +27,7 @@ const initialPlayers: PlayerState[] = [
     personality: 'sherpa',
     score: 0,
     carriages: 40,
-    hand: { red: 0, blue: 0, green: 0, yellow: 0, orange: 0, purple: 0, white: 0, black: 0, locomotive: 0 },
+    hand: createEmptyHand(),
     tickets: [],
   },
   {
@@ -31,16 +37,62 @@ const initialPlayers: PlayerState[] = [
     personality: 'express',
     score: 0,
     carriages: 40,
-    hand: { red: 0, blue: 0, green: 0, yellow: 0, orange: 0, purple: 0, white: 0, black: 0, locomotive: 0 },
+    hand: createEmptyHand(),
     tickets: [],
   },
 ];
 
-const appRoot = document.getElementById('app');
-if (appRoot) {
-  appRoot.innerHTML = renderGameWorkspaceMarkup(initialPlayers);
-  const binder = new BoardBinder(initialPlayers.length);
-  binder.syncHand(initialPlayers[0].hand);
-  binder.syncMarket(['red', 'blue', 'locomotive', 'green', 'orange']);
-  attachBoardViewportInteractions(binder);
+function mountGameSession(players: PlayerState[]): void {
+  const appRoot = document.getElementById('app');
+  if (!appRoot) return;
+
+  appRoot.innerHTML = renderGameWorkspaceMarkup(players);
+  const binder = new BoardBinder(players.length);
+  const engine = new NepalGameEngine(players, binder);
+
+  attachBoardViewportInteractions(binder, () => engine.routeOwners);
+
+  document.getElementById('btn-draw-blind')?.addEventListener('click', () => {
+    if (engine.activePlayerIdx === 0) {
+      engine.drawBlindCard();
+    }
+  });
+
+  document.querySelectorAll('.market-card-slot').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (engine.activePlayerIdx === 0) {
+        const slotIdx = Number(btn.getAttribute('data-slot') ?? '0');
+        engine.drawMarketCard(slotIdx);
+      }
+    });
+  });
+
+  document.querySelectorAll('.route-group').forEach((group) => {
+    group.addEventListener('click', () => {
+      if (engine.activePlayerIdx === 0) {
+        const routeId = Number(group.getAttribute('data-route-id') ?? '-1');
+        if (routeId >= 0) {
+          engine.tryClaimRoute(routeId);
+        }
+      }
+    });
+  });
+
+  document.getElementById('btn-draw-tickets')?.addEventListener('click', () => {
+    if (engine.activePlayerIdx === 0) {
+      engine.startTicketDraft(false);
+    }
+  });
+
+  document.getElementById('btn-rules')?.addEventListener('click', () => {
+    openRulesModal();
+  });
+
+  document.getElementById('btn-new-game')?.addEventListener('click', () => {
+    openNewGameSetupModal((configuredPlayers) => {
+      mountGameSession(configuredPlayers);
+    });
+  });
 }
+
+mountGameSession(defaultPlayers);

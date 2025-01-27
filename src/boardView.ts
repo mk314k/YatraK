@@ -433,3 +433,118 @@ export function openRulesModal(): void {
     modal.classList.add('hidden');
   });
 }
+
+export function openNewGameSetupModal(onStartGame: (players: PlayerState[]) => void): void {
+  const modal = document.getElementById('modal-overlay');
+  if (!modal) return;
+
+  modal.innerHTML = `
+    <div class="modal-card">
+      <h3>New Nepal Expedition</h3>
+      <p class="modal-subtitle">Configure your expedition team and AI opponents across Nepal's railway and highway network.</p>
+      <div class="setup-form">
+        <label class="setup-field">
+          <span>Your Expedition Name</span>
+          <input type="text" id="setup-player-name" value="Explorer (You)" />
+        </label>
+        <label class="setup-field">
+          <span>Your Team Color</span>
+          <select id="setup-player-color">
+            <option value="#b85d38">Himalayan Terracotta</option>
+            <option value="#7b4b94">Rhododendron Purple</option>
+            <option value="#c83e31">Crimson Gorkha</option>
+          </select>
+        </label>
+        <label class="setup-field">
+          <span>AI Opponents</span>
+          <select id="setup-bot-count">
+            <option value="1">1 AI Rival (Duel — Sherpa Tenzing)</option>
+            <option value="2" selected>2 AI Rivals (Sherpa + Terai Express)</option>
+            <option value="3">3 AI Rivals (Full 4-Team Expedition)</option>
+          </select>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="btn-cancel-setup" class="top-btn">Cancel</button>
+        <button type="button" id="btn-launch-expedition" class="top-btn primary">Start Expedition</button>
+      </div>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+
+  document.getElementById('btn-cancel-setup')?.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  document.getElementById('btn-launch-expedition')?.addEventListener('click', () => {
+    const nameInput = document.getElementById('setup-player-name') as HTMLInputElement | null;
+    const colorSelect = document.getElementById('setup-player-color') as HTMLSelectElement | null;
+    const botCountSelect = document.getElementById('setup-bot-count') as HTMLSelectElement | null;
+
+    const humanName = nameInput?.value.trim() || 'Explorer (You)';
+    const humanColor = colorSelect?.value || '#b85d38';
+    const botCount = Number(botCountSelect?.value || '2');
+
+    const emptyHand = () => ({
+      red: 0,
+      blue: 0,
+      green: 0,
+      yellow: 0,
+      orange: 0,
+      purple: 0,
+      white: 0,
+      black: 0,
+      locomotive: 0,
+    });
+
+    const botRoster: PlayerState[] = [
+      {
+        id: 1,
+        name: 'Sherpa Tenzing',
+        colorHex: '#2a6f97',
+        personality: 'sherpa',
+        score: 0,
+        carriages: 40,
+        hand: emptyHand(),
+        tickets: [],
+      },
+      {
+        id: 2,
+        name: 'Terai Express',
+        colorHex: '#3a7d44',
+        personality: 'express',
+        score: 0,
+        carriages: 40,
+        hand: emptyHand(),
+        tickets: [],
+      },
+      {
+        id: 3,
+        name: 'Mugling Blocker',
+        colorHex: '#d99b26',
+        personality: 'blocker',
+        score: 0,
+        carriages: 40,
+        hand: emptyHand(),
+        tickets: [],
+      },
+    ];
+
+    const players: PlayerState[] = [
+      {
+        id: 0,
+        name: humanName,
+        colorHex: humanColor,
+        personality: 'human',
+        score: 0,
+        carriages: 40,
+        hand: emptyHand(),
+        tickets: [],
+      },
+      ...botRoster.slice(0, botCount),
+    ];
+
+    modal.classList.add('hidden');
+    onStartGame(players);
+  });
+}
