@@ -3,6 +3,8 @@ import { computeLongestTrailForPlayer, findShortestUnclaimedRoutesForTicket, upd
 import { CITY_BY_ID, NEPAL_ROUTES, NEPAL_TICKETS } from './nepalMapData';
 import { CardColor, DestinationTicket, NepalRoute, PlayerState, ROUTE_POINTS_TABLE, TurnPhase } from './types';
 
+const STORAGE_KEY = 'ticket2ride_npl.save.v1';
+
 function shuffleArray<T>(items: T[]): T[] {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -666,5 +668,69 @@ export class NepalGameEngine {
       statusMessage,
     });
     this.updateDeckRemainingCount();
+    this.saveToStorage();
+  }
+
+  public saveToStorage(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      const payload = {
+        players: this.players,
+        deck: this.deck,
+        discardPile: this.discardPile,
+        market: this.market,
+        ticketDeck: this.ticketDeck,
+        routeOwners: this.routeOwners,
+        activePlayerIdx: this.activePlayerIdx,
+        phase: this.phase === 'selecting-tickets' || this.phase === 'setup-tickets' ? 'choose-action' : this.phase,
+        finalTurnsRemaining: this.finalTurnsRemaining,
+      };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  public restoreFromStorage(): boolean {
+    if (typeof window === 'undefined') return false;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed.players) || parsed.players.length !== this.players.length) {
+        return false;
+      }
+      this.players = parsed.players;
+      this.deck = Array.isArray(parsed.deck) ? parsed.deck : this.deck;
+      this.discardPile = Array.isArray(parsed.discardPile) ? parsed.discardPile : [];
+      this.market = Array.isArray(parsed.market) ? parsed.market : this.market;
+      this.ticketDeck = Array.isArray(parsed.ticketDeck) ? parsed.ticketDeck : this.ticketDeck;
+      this.routeOwners = Array.isArray(parsed.routeOwners) ? parsed.routeOwners : this.routeOwners;
+      this.activePlayerIdx = typeof parsed.activePlayerIdx === 'number' ? parsed.activePlayerIdx : 0;
+      this.phase = parsed.phase ?? 'choose-action';
+      this.finalTurnsRemaining = parsed.finalTurnsRemaining ?? null;
+
+      this.routeOwners.forEach((ownerId, routeId) => {
+        if (ownerId !== null && this.players[ownerId]) {
+          const p = this.players[ownerId];
+          this.binder.claimRoute(routeId, p.id, p.colorHex, p.name);
+        }
+      });
+
+      const active = this.players[this.activePlayerIdx];
+      this.syncAllBindings(`Resumed expedition — ${active.name}'s turn.`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public static clearSavedGame(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
   }
 }

@@ -42,13 +42,20 @@ const defaultPlayers: PlayerState[] = [
   },
 ];
 
-function mountGameSession(players: PlayerState[]): void {
+function mountGameSession(players: PlayerState[], isFreshGame = false): void {
   const appRoot = document.getElementById('app');
   if (!appRoot) return;
+
+  if (isFreshGame) {
+    NepalGameEngine.clearSavedGame();
+  }
 
   appRoot.innerHTML = renderGameWorkspaceMarkup(players);
   const binder = new BoardBinder(players.length);
   const engine = new NepalGameEngine(players, binder);
+  if (!isFreshGame) {
+    engine.restoreFromStorage();
+  }
 
   attachBoardViewportInteractions(binder, () => engine.routeOwners);
 
@@ -90,7 +97,7 @@ function mountGameSession(players: PlayerState[]): void {
 
   document.getElementById('btn-new-game')?.addEventListener('click', () => {
     openNewGameSetupModal((configuredPlayers) => {
-      mountGameSession(configuredPlayers);
+      mountGameSession(configuredPlayers, true);
     });
   });
 }
