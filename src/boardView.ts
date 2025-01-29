@@ -150,8 +150,8 @@ export function renderNepalMapSvg(): string {
         id="nepal-border-shape"
         d="${NEPAL_NATIONAL_BOUNDARY_PATH}"
         fill="url(#nepal-terrain-grad)"
-        stroke="#7a5940"
-        stroke-width="3.2"
+        stroke="#d9a03b"
+        stroke-width="3.4"
         stroke-linejoin="round"
         filter="url(#board-drop-shadow)"
       />
@@ -162,10 +162,10 @@ export function renderNepalMapSvg(): string {
       </g>
 
       <!-- Regional Watermarks -->
-      <text x="680" y="95" text-anchor="middle" fill="#52738a" font-size="12" font-weight="800" letter-spacing="4" opacity="0.65">
+      <text x="680" y="95" text-anchor="middle" fill="#d9a03b" font-size="12" font-weight="800" letter-spacing="4" opacity="0.8">
         GREAT HIMALAYAN TRAIL (HIMALAYA)
       </text>
-      <text x="580" y="672" text-anchor="middle" fill="#4f6f3e" font-size="12" font-weight="800" letter-spacing="4" opacity="0.65">
+      <text x="580" y="672" text-anchor="middle" fill="#a8d597" font-size="12" font-weight="800" letter-spacing="4" opacity="0.8">
         MAHENDRA EAST-WEST CORRIDOR (TERAI)
       </text>
 
@@ -226,8 +226,8 @@ export function renderGameWorkspaceMarkup(players: PlayerState[]): string {
     <div class="game-shell">
       <header class="top-bar">
         <div class="brand-group">
-          <h1 id="app-title">Ticket to Ride: Nepal</h1>
-          <span class="subtitle-pill">Himalayan Railway &amp; Highway Edition</span>
+          <h1 id="app-title">YatraK</h1>
+          <span class="subtitle-pill">Himalayan Route &amp; Transit Strategy</span>
         </div>
         <div class="turn-banner">
           <span id="turn-player-badge" class="turn-player-badge">Player 1</span>
@@ -406,7 +406,7 @@ export function openRulesModal(): void {
 
   modal.innerHTML = `
     <div class="modal-card modal-wide">
-      <h3>🏔️ Ticket to Ride: Nepal — Rules &amp; Scoring</h3>
+      <h3>🏔️ YatraK — Rules &amp; Scoring</h3>
       <p class="modal-subtitle">Connect Nepal's Terai plains, Pahad mid-hills, and Himalayan passes before any expedition runs down to 2 carriages.</p>
       <div class="rules-grid">
         <div class="rules-box">

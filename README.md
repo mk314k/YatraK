@@ -1,17 +1,19 @@
-# Ticket2Ride_NPL — Ticket to Ride: Nepal Edition
+# YatraK — Himalayan Route & Transit Strategy
 
-An interactive strategy board game set across the geography of Nepal — from the fast **Mahendra East–West Highway** in the southern **Terai** plains, through the winding **Pahad** mid-hills (*Kathmandu, Pokhara, Surkhet, Baglung*), up to the rugged **Himalayan Mountain Passes** (*Simikot, Jumla, Dolpa, Jomsom, Langtang, Lukla/Everest, Taplejung*).
+**YatraK** (*यात्रा* — Journey / Expedition) is an interactive route-building strategy board game set across the official geography of Nepal — from the fast **Mahendra East–West Highway** in the southern **Terai** plains, through the winding **Pahad** mid-hills (*Kathmandu, Pokhara, Surkhet, Baglung*), up to the rugged **Himalayan Mountain Passes** (*Simikot, Jumla, Dolpa, Jomsom, Langtang, Lukla/Everest, Taplejung*).
 
-![Ticket to Ride: Nepal Preview](./display.webp)
+![YatraK Preview](./display.webp)
 
 ---
 
 ## Features & Nepal Map Mechanics
 
+- **Official Nepal WGS84 Map & 7 Provinces**:
+  - High-precision SVG map projected from the Survey Department / National GeoPortal of Nepal boundary (including the northwestern *Limpiyadhura–Kalapani–Lipulekh* region) and all 7 provincial borders (*Sudurpashchim, Karnali, Lumbini, Gandaki, Bagmati, Madhesh, and Koshi Pradesh*).
 - **24 Nepali Cities & 56 Transport Routes**:
   - **Terai Corridor**: High-speed, long flat routes connecting *Mahendranagar, Dhangadhi, Nepalgunj, Butwal, Bharatpur, Birgunj, Janakpur, and Dharan/Biratnagar*.
   - **Pahad Mid-Hills**: Strategic hub bottlenecks through *Dadeldhura, Surkhet, Pokhara, Gorkha, Kathmandu, and Sindhuli*.
-  - **🏔️ Himalayan Mountain Passes**: High-altitude routes (*Simikot, Jumla, Dolpa, Jomsom, Langtang, Lukla, Taplejung*) award **+2 bonus points** upon claiming, but trigger a 1-card weather check from the transport deck (similar to Europe Tunnels).
+  - **🏔️ Himalayan Mountain Passes**: High-altitude routes (*Simikot, Jumla, Dolpa, Jomsom, Langtang, Lukla, Taplejung*) award **+2 bonus points** upon claiming, but trigger a 1-card weather check from the transport deck.
 - **18 Authentic Destination Tickets**: Including the *Mahendra East-West Highway (21 pts)*, *Great Himalayan Trail (22 pts)*, *Prithvi Highway*, *BP Koirala Highway*, and *Karnali River Corridor*.
 - **Graph Algorithms (`src/graph.ts`)**:
   - **BFS / Connected Components**: Automatically verifies Destination Ticket completion and highlights your connected city network on hover.
@@ -37,12 +39,12 @@ Built with **pure TypeScript + SVG + `statebinderk`** (zero virtual-DOM overhead
 ## Project Structure
 
 ```text
-Ticket2Ride_NPL/
+YatraK/
 ├── index.html          # App entry point
 ├── package.json        # Vite + TypeScript + statebinderk
 └── src/
     ├── types.ts        # Core types (NepalCity, NepalRoute, DestinationTicket, PlayerState)
-    ├── nepalMapData.ts # 24 Nepal cities, 56 routes, and 18 Destination Tickets
+    ├── nepalMapData.ts # Official WGS84 Nepal border, 7 provinces, 24 cities, 56 routes, 18 tickets
     ├── binder.ts       # Reactive statebinderk bindings for SVG routes, HUD, and cards
     ├── graph.ts        # BFS connectivity, DFS Longest Continuous Trail, Dijkstra AI planner
     ├── gameEngine.ts   # Turn state machine, market rules, Mountain Pass checks, AI turns
@@ -56,8 +58,8 @@ Ticket2Ride_NPL/
 ## Getting Started
 
 ```bash
-git clone https://github.com/mk314k/Ticket2Ride_NPL.git
-cd Ticket2Ride_NPL
+git clone https://github.com/mk314k/YatraK.git
+cd YatraK
 npm install
 npm run dev
 ```

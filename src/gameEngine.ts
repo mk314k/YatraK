@@ -3,7 +3,7 @@ import { computeLongestTrailForPlayer, findShortestUnclaimedRoutesForTicket, upd
 import { CITY_BY_ID, NEPAL_ROUTES, NEPAL_TICKETS } from './nepalMapData';
 import { CardColor, DestinationTicket, NepalRoute, PlayerState, ROUTE_POINTS_TABLE, TurnPhase } from './types';
 
-const STORAGE_KEY = 'ticket2ride_npl.save.v1';
+const STORAGE_KEY = 'yatrak.save.v1';
 
 function shuffleArray<T>(items: T[]): T[] {
   const copy = [...items];

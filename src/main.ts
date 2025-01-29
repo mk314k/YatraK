@@ -13,7 +13,7 @@ const defaultPlayers: PlayerState[] = [
   {
     id: 0,
     name: 'Explorer (You)',
-    colorHex: '#b85d38',
+    colorHex: '#c83e31',
     personality: 'human',
     score: 0,
     carriages: 40,

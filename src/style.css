@@ -1,15 +1,18 @@
 :root {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   line-height: 1.45;
-  color: #2b2118;
-  background-color: #f6f0e4;
-  --bg-parchment: #f6f0e4;
-  --bg-panel: #efe6d5;
-  --bg-surface: #fbf8f3;
-  --border-warm: #d5c5b0;
-  --accent-terracotta: #b85d38;
-  --text-main: #2b2118;
-  --text-muted: #736253;
+  color: #f5efe6;
+  background-color: #1f1712;
+  --bg-table: #1f1712;
+  --bg-panel: #2b2019;
+  --bg-surface: #362820;
+  --bg-parchment-card: #fbf6ec;
+  --border-brass: #7a5c3c;
+  --accent-crimson: #c83e31;
+  --accent-gold: #d9a03b;
+  --text-main: #f7f1e6;
+  --text-dark: #281e16;
+  --text-muted: #c2b09b;
 }
 
 * {
@@ -20,7 +23,7 @@
 
 body {
   min-height: 100vh;
-  background: var(--bg-parchment);
+  background: radial-gradient(circle at 50% 35%, #2b2019 0%, #19120e 100%);
   color: var(--text-main);
   user-select: none;
 }
@@ -32,7 +35,7 @@ button {
 
 .game-shell {
   display: grid;
-  grid-template-rows: 54px 1fr 68px;
+  grid-template-rows: 56px 1fr 70px;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -43,8 +46,9 @@ button {
   align-items: center;
   justify-content: space-between;
   padding: 0 18px;
-  background: var(--bg-panel);
-  border-bottom: 1px solid var(--border-warm);
+  background: linear-gradient(180deg, #32251d 0%, #261c16 100%);
+  border-bottom: 2px solid var(--border-brass);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   gap: 12px;
 }
 
@@ -55,20 +59,22 @@ button {
 }
 
 .brand-group h1 {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--accent-gold);
 }
 
 .subtitle-pill {
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 3px 9px;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(184, 93, 56, 0.14);
-  color: #964525;
+  background: rgba(200, 62, 49, 0.24);
+  border: 1px solid rgba(217, 160, 59, 0.45);
+  color: #f7d89c;
 }
 
 .turn-banner {
@@ -76,8 +82,8 @@ button {
   align-items: center;
   gap: 10px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-warm);
-  padding: 5px 12px;
+  border: 1px solid var(--border-brass);
+  padding: 5px 14px;
   border-radius: 999px;
   font-size: 0.82rem;
 }
@@ -85,7 +91,7 @@ button {
 .turn-player-badge {
   padding: 2px 10px;
   border-radius: 999px;
-  background: var(--accent-terracotta);
+  background: var(--accent-crimson);
   color: #fffdf9;
   font-weight: 700;
   font-size: 0.76rem;
@@ -105,22 +111,28 @@ button {
 .top-btn {
   padding: 6px 12px;
   border-radius: 8px;
-  border: 1px solid var(--border-warm);
+  border: 1px solid var(--border-brass);
   background: var(--bg-surface);
   color: var(--text-main);
   font-size: 0.8rem;
   font-weight: 600;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.top-btn:hover {
+  border-color: var(--accent-gold);
+  background: #433228;
 }
 
 .top-btn.primary {
-  background: var(--accent-terracotta);
-  border-color: var(--accent-terracotta);
+  background: var(--accent-crimson);
+  border-color: var(--accent-gold);
   color: #fffdf9;
 }
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: 245px 1fr 210px;
+  grid-template-columns: 248px 1fr 212px;
   gap: 10px;
   padding: 10px 12px;
   min-height: 0;
@@ -136,12 +148,13 @@ button {
 
 .panel-section {
   background: var(--bg-panel);
-  border: 1px solid var(--border-warm);
+  border: 1px solid var(--border-brass);
   border-radius: 14px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 18px rgba(0, 0, 0, 0.28);
 }
 
 .tickets-section {
@@ -159,18 +172,22 @@ button {
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
+  letter-spacing: 0.07em;
+  color: var(--accent-gold);
 }
 
 .mini-btn {
   padding: 3px 8px;
   border-radius: 6px;
-  border: 1px solid var(--border-warm);
+  border: 1px solid var(--border-brass);
   background: var(--bg-surface);
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--accent-terracotta);
+  color: #f7d89c;
+}
+
+.mini-btn:hover {
+  border-color: var(--accent-gold);
 }
 
 .player-cards-list {
@@ -181,7 +198,7 @@ button {
 
 .player-summary-card {
   background: var(--bg-surface);
-  border: 2px solid var(--border-warm);
+  border: 2px solid rgba(122, 92, 60, 0.65);
   border-radius: 10px;
   padding: 7px 9px;
   display: flex;
@@ -190,8 +207,9 @@ button {
 }
 
 .player-summary-card.active-turn {
-  border-color: var(--accent-terracotta);
-  box-shadow: 0 3px 10px rgba(184, 93, 56, 0.16);
+  border-color: var(--accent-gold);
+  background: #402e24;
+  box-shadow: 0 3px 12px rgba(217, 160, 59, 0.22);
 }
 
 .player-card-header {
@@ -205,6 +223,7 @@ button {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  border: 1px solid #fffdf9;
 }
 
 .player-name {
@@ -214,8 +233,8 @@ button {
 .player-role-tag {
   font-size: 0.68rem;
   text-transform: uppercase;
-  color: var(--text-muted);
-  background: var(--bg-panel);
+  color: #f7d89c;
+  background: rgba(0, 0, 0, 0.28);
   padding: 1px 6px;
   border-radius: 999px;
 }
@@ -225,6 +244,7 @@ button {
   justify-content: space-between;
   font-size: 0.78rem;
   font-weight: 700;
+  color: var(--text-muted);
 }
 
 .tickets-list {
@@ -236,9 +256,10 @@ button {
 }
 
 .ticket-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-warm);
-  border-left: 4px solid var(--accent-terracotta);
+  background: var(--bg-parchment-card);
+  color: var(--text-dark);
+  border: 1px solid #c9b598;
+  border-left: 5px solid var(--accent-crimson);
   border-radius: 8px;
   padding: 6px 8px;
   font-size: 0.76rem;
@@ -246,11 +267,12 @@ button {
   flex-direction: column;
   gap: 2px;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .ticket-card.completed {
-  border-left-color: #3a7d44;
-  background: #eef6ec;
+  border-left-color: #2f7a3e;
+  background: #e9f5e6;
 }
 
 .ticket-route-line {
@@ -261,18 +283,19 @@ button {
 
 .ticket-corridor {
   font-size: 0.68rem;
-  color: var(--text-muted);
+  color: #6b5847;
 }
 
 .board-stage {
-  background: #eadfce;
-  border: 1px solid var(--border-warm);
+  background: radial-gradient(circle at 50% 50%, #3d2f24 0%, #251b14 100%);
+  border: 2px solid var(--border-brass);
   border-radius: 16px;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.55);
 }
 
 .map-viewport {
@@ -298,7 +321,7 @@ button {
   display: flex;
   gap: 4px;
   background: var(--bg-panel);
-  border: 1px solid var(--border-warm);
+  border: 1px solid var(--border-brass);
   padding: 4px;
   border-radius: 10px;
 }
@@ -306,8 +329,9 @@ button {
 .zoom-btn {
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid var(--border-warm);
+  border: 1px solid var(--border-brass);
   background: var(--bg-surface);
+  color: var(--text-main);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -315,14 +339,15 @@ button {
 .board-tooltip {
   position: absolute;
   pointer-events: none;
-  background: rgba(43, 33, 24, 0.94);
+  background: rgba(28, 20, 15, 0.96);
   color: #fbf8f3;
+  border: 1px solid var(--accent-gold);
   padding: 7px 10px;
   border-radius: 8px;
   font-size: 0.75rem;
   line-height: 1.35;
   z-index: 40;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
   max-width: 260px;
 }
 
@@ -355,13 +380,13 @@ button {
   padding: 3px 9px;
   border-radius: 999px;
   border: 2px solid #fffdf9;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   z-index: 50;
   animation: floatScoreUp 1.05s ease-out forwards;
 }
 
 .route-group:hover .route-bed {
-  stroke: rgba(184, 93, 56, 0.55);
+  stroke: rgba(217, 160, 59, 0.75);
   stroke-width: 13;
 }
 
@@ -386,8 +411,9 @@ button {
 .blind-deck-btn {
   padding: 10px;
   border-radius: 10px;
-  border: 2px dashed var(--accent-terracotta);
+  border: 2px dashed var(--accent-gold);
   background: var(--bg-surface);
+  color: var(--text-main);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -410,11 +436,11 @@ button {
 .market-card-slot {
   height: 48px;
   border-radius: 9px;
-  border: 2px solid rgba(43, 33, 24, 0.25);
+  border: 2px solid rgba(255, 248, 235, 0.35);
   font-weight: 800;
   font-size: 0.78rem;
   letter-spacing: 0.04em;
-  box-shadow: 0 2px 6px rgba(43, 33, 24, 0.12);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.12s ease;
 }
 
@@ -428,16 +454,16 @@ button {
   justify-content: space-between;
   gap: 14px;
   padding: 0 18px;
-  background: var(--bg-panel);
-  border-top: 1px solid var(--border-warm);
+  background: linear-gradient(180deg, #2b2019 0%, #211813 100%);
+  border-top: 2px solid var(--border-brass);
 }
 
 .hand-bar-label {
   font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  color: var(--accent-gold);
 }
 
 .hand-chips-row {
@@ -450,7 +476,7 @@ button {
   display: flex;
   align-items: center;
   background: var(--bg-surface);
-  border: 1px solid var(--border-warm);
+  border: 1px solid var(--border-brass);
   border-radius: 8px;
   overflow: hidden;
   font-size: 0.75rem;
@@ -470,6 +496,7 @@ button {
   padding: 5px 8px;
   font-family: monospace;
   font-size: 0.82rem;
+  color: var(--text-main);
 }
 
 .game-log-ticker {
@@ -489,7 +516,7 @@ button {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(43, 33, 24, 0.55);
+  background: rgba(15, 10, 7, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -498,14 +525,15 @@ button {
 
 .modal-card {
   width: min(480px, 92vw);
-  background: var(--bg-surface);
-  border: 2px solid var(--border-warm);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: 2px solid var(--accent-gold);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 20px 44px rgba(43, 33, 24, 0.28);
+  box-shadow: 0 24px 52px rgba(0, 0, 0, 0.55);
 }
 
 .modal-card.modal-wide {
@@ -520,13 +548,14 @@ button {
 
 .standings-table th,
 .standings-table td {
-  border: 1px solid var(--border-warm);
+  border: 1px solid var(--border-brass);
   padding: 8px 10px;
   text-align: left;
 }
 
 .standings-table th {
-  background: var(--bg-panel);
+  background: var(--bg-surface);
+  color: var(--accent-gold);
   font-weight: 800;
 }
 
@@ -538,8 +567,8 @@ button {
 }
 
 .rules-box {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-warm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-brass);
   border-radius: 10px;
   padding: 12px;
   display: flex;
@@ -572,8 +601,8 @@ button {
 .setup-field select {
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid var(--border-warm);
-  background: var(--bg-panel);
+  border: 1px solid var(--border-brass);
+  background: var(--bg-surface);
   color: var(--text-main);
   font-size: 0.84rem;
 }
@@ -594,15 +623,15 @@ button {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: var(--bg-panel);
-  border: 2px solid var(--border-warm);
+  background: var(--bg-surface);
+  border: 2px solid var(--border-brass);
   border-radius: 10px;
   cursor: pointer;
 }
 
 .draft-ticket-option.selected {
-  border-color: var(--accent-terracotta);
-  background: #f5ebe0;
+  border-color: var(--accent-gold);
+  background: #463327;
 }
 
 .draft-ticket-info {
