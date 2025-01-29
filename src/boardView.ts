@@ -1,4 +1,12 @@
-import { NEPAL_CITIES, NEPAL_ROUTES, CITY_BY_ID, MAP_WIDTH, MAP_HEIGHT } from './nepalMapData';
+import {
+  NEPAL_CITIES,
+  NEPAL_ROUTES,
+  CITY_BY_ID,
+  MAP_WIDTH,
+  MAP_HEIGHT,
+  NEPAL_NATIONAL_BOUNDARY_PATH,
+  NEPAL_PROVINCE_BOUNDARIES,
+} from './nepalMapData';
 import { NepalRegion, NepalRoute, PlayerState, CARD_COLOR_HEX, ROUTE_COLOR_HEX, ROUTE_POINTS_TABLE } from './types';
 import { ALL_CARD_COLORS, BoardBinder } from './binder';
 import { getConnectedComponent } from './graph';
@@ -92,6 +100,20 @@ function renderRouteSegmentsMarkup(route: NepalRoute): string {
 
 export function renderNepalMapSvg(): string {
   const routesMarkup = NEPAL_ROUTES.map(renderRouteSegmentsMarkup).join('');
+  const provincesMarkup = NEPAL_PROVINCE_BOUNDARIES.map(
+    (prov) => `
+      <path
+        class="province-boundary"
+        data-province="${prov.id}"
+        d="${prov.d}"
+        fill="none"
+        stroke="#9b856c"
+        stroke-width="1.2"
+        stroke-dasharray="4,3"
+        opacity="0.55"
+      />
+    `
+  ).join('');
 
   const citiesMarkup = NEPAL_CITIES.map((city) => {
     const r = city.isHub ? 9 : 6.5;
@@ -112,10 +134,10 @@ export function renderNepalMapSvg(): string {
   return `
     <svg id="nepal-board-svg" viewBox="0 0 ${MAP_WIDTH} ${MAP_HEIGHT}" preserveAspectRatio="xMidYMid meet">
       <defs>
-        <linearGradient id="nepal-terrain-grad" x1="0%" y1="0%" x2="15%" y2="100%">
+        <linearGradient id="nepal-terrain-grad" x1="18%" y1="0%" x2="8%" y2="100%">
           <stop offset="0%" stop-color="#e3ecf2" />
-          <stop offset="42%" stop-color="#efe3d0" />
-          <stop offset="85%" stop-color="#e2ebd5" />
+          <stop offset="44%" stop-color="#efe3d0" />
+          <stop offset="82%" stop-color="#e2ebd5" />
           <stop offset="100%" stop-color="#d7e4c5" />
         </linearGradient>
         <filter id="board-drop-shadow" x="-5%" y="-5%" width="110%" height="110%">
@@ -123,41 +145,27 @@ export function renderNepalMapSvg(): string {
         </filter>
       </defs>
 
-      <!-- Nepal National Border & Topographical Polygon -->
+      <!-- Official Nepal National Boundary (WGS 1984 / Survey Dept of Nepal with Limpiyadhura-Kalapani-Lipulekh) -->
       <path
         id="nepal-border-shape"
-        d="M 52,320 L 96,204 L 198,84 L 312,96 L 465,148 L 620,145 L 795,186 L 978,242 L 1185,356 L 1205,495 L 1072,612 L 882,618 L 735,585 L 520,536 L 268,512 L 128,456 L 44,378 Z"
+        d="${NEPAL_NATIONAL_BOUNDARY_PATH}"
         fill="url(#nepal-terrain-grad)"
-        stroke="#8c6d53"
-        stroke-width="4"
+        stroke="#7a5940"
+        stroke-width="3.2"
+        stroke-linejoin="round"
         filter="url(#board-drop-shadow)"
       />
 
-      <!-- Himalayan Ridge Contour Line -->
-      <path
-        d="M 122,225 Q 310,165 550,205 T 980,295 L 1168,390"
-        fill="none"
-        stroke="#7a9eb5"
-        stroke-width="2"
-        stroke-dasharray="8,6"
-        opacity="0.65"
-      />
-
-      <!-- Mahabharat / Churia Terai Boundary Line -->
-      <path
-        d="M 74,368 Q 340,445 640,455 T 1175,525"
-        fill="none"
-        stroke="#6a8d56"
-        stroke-width="2"
-        stroke-dasharray="6,6"
-        opacity="0.65"
-      />
+      <!-- 7 Provincial Administrative Boundaries -->
+      <g id="provinces-layer">
+        ${provincesMarkup}
+      </g>
 
       <!-- Regional Watermarks -->
-      <text x="580" y="130" text-anchor="middle" fill="#52738a" font-size="13" font-weight="800" letter-spacing="4" opacity="0.65">
+      <text x="680" y="95" text-anchor="middle" fill="#52738a" font-size="12" font-weight="800" letter-spacing="4" opacity="0.65">
         GREAT HIMALAYAN TRAIL (HIMALAYA)
       </text>
-      <text x="650" y="650" text-anchor="middle" fill="#4f6f3e" font-size="13" font-weight="800" letter-spacing="4" opacity="0.65">
+      <text x="580" y="672" text-anchor="middle" fill="#4f6f3e" font-size="12" font-weight="800" letter-spacing="4" opacity="0.65">
         MAHENDRA EAST-WEST CORRIDOR (TERAI)
       </text>
 
